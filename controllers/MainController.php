@@ -1,9 +1,10 @@
 <?php
 
-class MainController {
+class MainController extends Controller {
 
     function __construct() {
-		print "MainController";
+        parent::__construct();
+        print "MainController";
     }
     
     function login($test="")
