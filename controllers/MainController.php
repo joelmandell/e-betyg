@@ -4,7 +4,9 @@ class MainController extends Controller {
 
     function __construct() {
         parent::__construct();
-        print "MainController";
+        
+        $view = new View();
+        $view->render("index/index");
     }
     
     function login($test="")
