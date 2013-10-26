@@ -6,4 +6,3 @@ require 'libs/Controller.php';
 require 'libs/View.php';
 
 $program = new load();
-?>

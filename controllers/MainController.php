@@ -8,11 +8,6 @@ class MainController extends Controller {
         $view = new View();
         $view->render("index/index");
     }
+ 
     
-    function login($test="")
-    {
-        echo "login ".$test;
-    }
 }
-
-?>

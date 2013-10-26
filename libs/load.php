@@ -16,7 +16,7 @@ class load {
             if(count($params)>0)
             {
 
-                if($params[0]=="index.php" || $params[0]=="" || $params[0] = "/") 
+                if($params[0]=="index.php" || $params[0]=="" || $params[0] == "/") 
                 {
                     $controller_file = "controllers/".$standard_controller.".php";
                 } else {

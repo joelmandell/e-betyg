@@ -7,15 +7,15 @@ class View {
     
     function render($name)
     {
-        $file='/views/'.$name.'.php';
-        if(file_exists($file))
+        $file="views/".$name.".php";
+                
+        if(file_exists($file)===TRUE)
         {
-            //All good, file exists.
+            require $file;
         } else {
-            $file='/views/error/wrong_view.php';
-        }
-        
-        require $file;
+            $file="views/error/wrong_view.php";
+            require $file;
+        }        
     }
 
 }
