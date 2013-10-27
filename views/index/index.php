@@ -1,11 +1,15 @@
 <html>
 <head>
     <meta charset="utf-8" /> 
+    <link rel="stylesheet" type="text/css" href="resources/css/main.css" />
     <title>
         E-Betyg
     </title>
 <head>
 <body>
+    <div id="header"></div>
+    <?php
+    ?>
     <h1>Välkommen!</h1>
     <p>E-Betyg är en tjänst för <strong>lärare</strong> och <strong>elever</strong>.</p>
     <p>Här kan elever med sitt konto skicka upp uppdrag för

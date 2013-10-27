@@ -58,7 +58,14 @@ class load {
 
                 }
 
-            } else {
+            } else {    
+                
+                if(is_dir(getcwd()."\/".$params[0]))
+                    {
+                        echo "such a dir exists";
+                    }
+                echo getcwd()."\\".$params[0];
+
                 echo "File error";
             }
         }
