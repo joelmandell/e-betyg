@@ -18,5 +18,7 @@
         skicka en förfrågan om användarkonto till aktuell lärare och därefter
         vänta på bekräftelse av konto från lärare.
     </p>
+    <br />
+    <p><a href="AccountController">Logga in</a></p>
 </body>
 </html>
