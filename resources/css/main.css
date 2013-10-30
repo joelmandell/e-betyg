@@ -8,8 +8,14 @@ and open the template in the editor.
     Author     : joel
 */
 
+body {
+    width:960px;
+    margin:0 auto;
+}
+
 #header {
     width:960px;
     height:220px;
     background-image:url("../img/header.png");
+    background-repeat: repeat-y;
 }

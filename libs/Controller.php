@@ -7,8 +7,16 @@ class Controller {
     
     function __construct() {
         
-        //There is always a View class available.
-        $this->view = new View();
+        if($_POST)
+        {
+            //If POST request, do not load view.
+        }
+        if($_GET)
+        {
+            //There is always a View class available
+            //when controller is called as $_GET request
+            $this->view = new View();
+        }
     }
 
 }

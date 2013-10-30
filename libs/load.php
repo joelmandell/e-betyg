@@ -75,15 +75,18 @@ class load {
 
             } else {    
                 
-                echo "/".$params[0];
-                if(is_file("/".$params[0]))
-                {
-                    echo "such a dir exists";
-                }
+                $file="";
                 
-                echo "\\".$params[0];
+                foreach($params as $dir)
+                {
+                    $file.=$dir."/";
+                }
+                $file=rtrim($file,"/");
 
-                echo "File error";
+                if(is_file($file))
+                {
+                    require $file;
+                }
             }
         }
     }
