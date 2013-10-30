@@ -19,6 +19,6 @@
         vänta på bekräftelse av konto från lärare.
     </p>
     <br />
-    <p><a href="AccountController">Logga in</a></p>
+    <p><a href="Account">Logga in</a></p>
 </body>
 </html>

@@ -1,6 +1,11 @@
 <?php
 
-require 'config/routes.php';
+/*
+This is a MVC Framework coded and copyrighted by Joel Mandell 2013.
+For questions, please e-mail me at joelmandell@gmail.com
+
+
+*/
 
 class load {
 
@@ -11,29 +16,39 @@ class load {
         {
             $req=$_GET["c"];
             $params = explode("/", $req);
-            $standard_controller=  constant("index_controller");
+            $standard_controller=constant("index_controller");
             
             if(count($params)>0)
             {
-
                 if($params[0]=="index.php" || $params[0]=="" || $params[0] == "/") 
                 {
-                    $controller_file = "controllers/".$standard_controller.".php";
+                    $controller_file = "controllers/".$standard_controller."Controller.php";
                 } else {
-                    $controller_file = "controllers/".$params[0].".php";     
-                }
+                    $controller_file = "controllers/".$params[0]."Controller.php";     
+                }   
             }
 
+            //Does the file exist that we are trying to call.
             if(file_exists($controller_file))
             {
                 require $controller_file;
 
-                if(class_exists($params[0]))
+                if($params[0]!="")
                 {
-                    $controller = new $params[0];
+                    $clsName=$params[0]."Controller";
+                    
+                    if(class_exists($clsName))
+                    {
+                        $controller = new $clsName;
+                    } else {
+                        $clsName=$standard_controller."Controller";
+                        $controller = new $clsName;
+                    }
                 } else {
-                    $controller = new $standard_controller;
-                }
+                    $clsName=$standard_controller."Controller";
+                    $controller = new $clsName;     
+
+                    }
                 //If params is not null then we can work with potential arguments.
                 if(count($params)>2)
                 {
@@ -60,11 +75,13 @@ class load {
 
             } else {    
                 
-                if(is_dir(getcwd()."\/".$params[0]))
-                    {
-                        echo "such a dir exists";
-                    }
-                echo getcwd()."\\".$params[0];
+                echo "/".$params[0];
+                if(is_file("/".$params[0]))
+                {
+                    echo "such a dir exists";
+                }
+                
+                echo "\\".$params[0];
 
                 echo "File error";
             }
