@@ -9,6 +9,7 @@ For questions, please e-mail me at joelmandell@gmail.com
 
 class load {
 
+    //Really in need to chunk the code into functions and not have all code in the constructor.
     function __construct()
     {
 
