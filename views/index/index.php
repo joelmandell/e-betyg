@@ -7,13 +7,18 @@
     </title>
 <head>
 <body>
-    <div id="header"></div>
-    <h1>
-        <?php echo $_M->h1;?>
-    </h1>
-    
-        <?php echo $_M->p; ?>
-    <br />
-    <p><a href="Account">Logga in</a></p>
+    <div id="page">
+        <div id="header"><img src="resources/img/header.png" /></div>
+        
+        <div id="text_content">
+            <h1>
+                <?php echo $_M->h1;?>
+            </h1>
+
+                <?php echo $_M->p; ?>
+            <br />
+            <p><a href="Account">Logga in</a></p>
+        </div>
+    </div>
 </body>
 </html>

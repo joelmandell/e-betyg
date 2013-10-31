@@ -11,11 +11,22 @@ and open the template in the editor.
 body {
     width:960px;
     margin:0 auto;
+    background-color:#f3f3f3;
+}
+
+#page {
+    border:1px solid #d3d3d3;
+        width:960px;
+    float:left;
+    background-color:#fff;
+}
+
+#text_content {
+    padding:1em;
 }
 
 #header {
-    width:960px;
-    height:220px;
-    background-image:url("../img/header.png");
-    background-repeat: repeat-y;
+
+    background-image:url("../img/strip_bg.png");
+    background-repeat: repeat-x;
 }

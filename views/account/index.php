@@ -7,9 +7,13 @@
     </title>
 <head>
 <body>
-    <div id="header"></div>
-    <?php
-    ?>
-    <h1>Logga in</h1>
+    <div id="page">
+        <div id="header"><img src="resources/img/header.png" /></div>
+        
+        <div id="text_content">
+            <h1>Logga in</h1>
+        </div>
+
+    </div>
 </body>
 </html>
