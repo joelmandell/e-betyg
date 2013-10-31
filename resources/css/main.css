@@ -11,22 +11,65 @@ and open the template in the editor.
 body {
     width:960px;
     margin:0 auto;
-    background-color:#f3f3f3;
+    background-color:#99ccff;
+}
+
+body h1 {
+    font-size: 26px;
+    font-family:'Tahoma';
+    font-weight:bolder;
+}
+
+body h2 {
+    font-size: 20px;
+    font-family:'Tahoma';
+    font-weight:bolder;
+}
+
+body p {
+    font-size:14px;
+    font-family:'Trebuchet MS';
+    font-weight: light;
 }
 
 #page {
-    border:1px solid #d3d3d3;
-        width:960px;
+    border:1px solid #006699;
+    max-width:1200px;
+    min-width:320px;
     float:left;
+    margin-top:25px;
     background-color:#fff;
+    top:0;
 }
 
-#text_content {
+#text_left_content {
     padding:1em;
+    max-width: 1000px;
+    min-width: 220px;
+    width:75%;
+    float:left;
+    left:0;
+}
+
+#text_right_content {
+    max-width:200px;
+    width:20%;
+    min-width:100px;
+    float:right;   
 }
 
 #header {
-
     background-image:url("../img/strip_bg.png");
     background-repeat: repeat-x;
+}
+
+#nav {
+    background-color:#0099cc;
+    color:#fff;
+    height:50px;
+    width:960px;
+    border-top:1px solid #000;
+    border-bottom:1px solid #000;
+    font-family: Tahoma;
+    float: left;
 }

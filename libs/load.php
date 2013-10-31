@@ -4,12 +4,12 @@
 This is a MVC Framework coded and copyrighted by Joel Mandell 2013.
 For questions, please e-mail me at joelmandell@gmail.com
 */
-
 class load {
 
     //Really in need to chunk the code into functions and not have all code in the constructor.
     function __construct()
     {
+        //$_DB=new DatabaseConnection("mysql", "e-betyg");
 
         if(isset($_GET["c"]))
         {
@@ -99,6 +99,12 @@ class load {
 
                 if(is_file($file))
                 {
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime=finfo_file($finfo, $file);
+                    
+                    //Send mimetype of file in headers...
+                    //TODO: Enable to blacklist mimetypes??
+                    header('Content-type:'.$mime.'');
                     require $file;
                 }
             }

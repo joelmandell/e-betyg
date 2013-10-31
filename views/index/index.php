@@ -9,15 +9,18 @@
 <body>
     <div id="page">
         <div id="header"><img src="resources/img/header.png" /></div>
+        <div id="nav"></div>
         
-        <div id="text_content">
+        <div id="text_left_content">
             <h1>
                 <?php echo $_M->h1;?>
             </h1>
 
                 <?php echo $_M->p; ?>
-            <br />
             <p><a href="Account">Logga in</a></p>
+        </div>
+        <div id="text_right_content">
+            <h2>Logga in:</h2>
         </div>
     </div>
 </body>

@@ -9,11 +9,13 @@
 <body>
     <div id="page">
         <div id="header"><img src="resources/img/header.png" /></div>
-        
-        <div id="text_content">
-            <h1>Logga in</h1>
-        </div>
+        <div id="nav"></div>
 
+        <div id="text_left_content">
+            <h1>Logga in</h1>
+            <?php if(isset($salt)) echo $salt; ?>
+        </div>
+        
     </div>
 </body>
 </html>
