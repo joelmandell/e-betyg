@@ -4,29 +4,30 @@ require 'libs/pbkdf2.php';
 
 class AccountController extends Controller {
 
+    public $_M;
+    
     function __construct() {
+       
         parent::__construct();
-        
-        $this->view->render("account/index");
+        //$this->index();
+        $this->view->setModel("AccountModel");
+
     }
- 
-    function SignIn()
+
+    function index()
     {
-        if($_POST)
-        {
-            //$_POST["password"]
-        }
+        $this->view->render("account/index");  
     }
     
-    function SaltTest($password)
+    function SaltTest($password="kalle")
     {
-        echo $password;
         $salt=create_hash($password);
-        echo "salt: ".$salt."<br />";
         $hashed_password=create_hash($password.$salt);
-        echo "<br />".$hashed_password."<br />";
-        echo "<br />Res:".validate_password($password.$salt,$hashed_password);
-        $this->view->render("account/index");
+
+        $this->_M->hash=$password;
+        
+        $this->view->render("account/index");  
+
     }
     
 }

@@ -16,7 +16,6 @@ class DatabaseConnection {
         $charset=constant("db_charset");
         if($driver=="mysql")
         {
-            echo "working";
             //Create database class that user can call later.
             $this->db = new PDO("mysql:host=".$host.";dbname="
             .$dbname.";charset=".$charset,$user,$pass);

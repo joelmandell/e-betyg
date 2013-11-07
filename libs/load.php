@@ -4,6 +4,11 @@
 This is a MVC Framework coded and copyrighted by Joel Mandell 2013.
 For questions, please e-mail me at joelmandell@gmail.com
 */
+if(!isset($_GET['c']))
+{
+    exit;
+}
+
 class load {
 
     //Really in need to chunk the code into functions and not have all code in the constructor.
@@ -72,9 +77,14 @@ class load {
                         //If first param is the standard controller
                         if($params[0]==$standard_controller)
                         {
-                            $controller->$params[1]($params[2]);
+                            if(method_exists($controller->$params[1]))
+                            {
+                                $controller->$params[1]($params[2]);
+                            }
                         } else {
-                            $controller->$params[1]($params[2]);                            
+                            
+                            $controller->$params[1]($params[2]);
+
                         }
                     }
 
@@ -100,12 +110,24 @@ class load {
                 if(is_file($file))
                 {
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $mime=finfo_file($finfo, $file);
                     
-                    //Send mimetype of file in headers...
-                    //TODO: Enable to blacklist mimetypes??
-                    header('Content-type:'.$mime.'');
-                    require $file;
+                    $mime=finfo_file($finfo, $file);
+
+                    
+                    //We are going to send mimetype of file in headers...
+                    //But first check if they are allowed..
+                    echo $mime;die();
+                    if($mime!=="text/css" || $mime!=="text/html" || $mime!=="text/php")
+                    {
+                        die("Not correct mime");
+                        exit;
+                    } else {
+                        header('Content-type:'.$mime.'');
+                        require $file;
+                    }
+                    
+                } else {
+                    exit;
                 }
             }
         }
