@@ -100,19 +100,45 @@ class load {
                 //do it codewise.
                 $file="";
                 
+                
+                //$params is the parameters passed to the $_GET["c"] variable.
+                //So we build up the file destination by building the 
+                //directories aswell in the string.
                 foreach($params as $dir)
                 {
+                    //Each $dir ends with a '/' symbol. 
                     $file.=$dir."/";
                 }
                 
+                //Because the last parameter in the url is a file 
+                //we remove the last '/' added from above foreach-loop.
                 $file=rtrim($file,"/");
 
+                //Check if the file exists.
                 if(is_file($file))
                 {
+                    //Initiate a file info object.
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
                     
-                    $mime=finfo_file($finfo, $file);                  
-                    //We are going to send mimetype of file in headers...
+                    //Check mimetype by binding it to the fileinfo object as
+                    //first argument and the $file path as second argument
+                    $mime=finfo_file($finfo, $file);    
+                    
+                    //Get the extension of the file.
+                    $ext=(false === $pos = strrpos($file, '.')) ? '' : substr($file, $pos);
+                    
+                    //We just want to check if this is a php file then we 
+                    //do not accept that. 
+                    //User will not see the code anyway...
+                    //So no big harm really if the try to download some source-
+                    //code or config file.
+                    //But anyway they will get a downloaded file with some
+                    //errors and reference to some php class.
+                    //So then we just kick the user back one step.
+                    if($ext==".php") Header("Location: ../"); 
+                    
+                    //We are going to send mimetype of file in the headers
+                    //so the content will be deliveried correctly.
                     header('Content-type:'.$mime.'');
                     require $file;
                     
