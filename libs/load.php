@@ -111,22 +111,13 @@ class load {
                 {
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
                     
-                    $mime=finfo_file($finfo, $file);
-
-                    
+                    $mime=finfo_file($finfo, $file);                  
                     //We are going to send mimetype of file in headers...
-                    //But first check if they are allowed..
-                    echo $mime;die();
-                    if($mime!=="text/css" || $mime!=="text/html" || $mime!=="text/php")
-                    {
-                        die("Not correct mime");
-                        exit;
-                    } else {
-                        header('Content-type:'.$mime.'');
-                        require $file;
-                    }
+                    header('Content-type:'.$mime.'');
+                    require $file;
                     
                 } else {
+                    die();
                     exit;
                 }
             }
