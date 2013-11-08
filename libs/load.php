@@ -9,9 +9,14 @@ if(!isset($_GET['c']))
     exit;
 }
 
+session_start();
+
 class load {
 
-    //Really in need to chunk the code into functions and not have all code in the constructor.
+    //TODO:
+    //Really in need to chunk the code into functions 
+    //and not have all code in the constructor.
+    
     function __construct()
     {
         //$_DB=new DatabaseConnection("mysql", "e-betyg");
@@ -37,8 +42,8 @@ class load {
             {
                 require $controller_file;
 
-                //If params[0] is not null, then load the controller 
-                //of that variables value.
+                //If params[0] is not null aka url is www.example.com/example/
+                //then load the controller //of that variables value.
                 if($params[0]!="")
                 {
                     //Build the class name for the Controller to load.
@@ -47,6 +52,8 @@ class load {
                     //Do we have a class with that name?
                     if(class_exists($clsName))
                     {
+                        //We have a class like that and we instantiate
+                        //that class as an controller object.
                         $controller = new $clsName;
                     } else {
                         //If not load the standard controller class
@@ -55,14 +62,14 @@ class load {
                         $controller = new $clsName;
                     }
                 } else {
-                    //If $params[0] is null then load the standard controller.
+                    //If $params[0] is null aka url is www.example.com
+                    //then load the standard controller.
                     $clsName=$standard_controller."Controller";
-                    $controller = new $clsName;     
+                    $controller = new $clsName;    
                 }
                 
                 //If params is not null then we can work with potential
-                //arguments.
-                //And if it is more than two items
+                //arguments. And if it is more than two items
                 //that means an method in controller was called aswell.
                 if(count($params)>2)
                 {
@@ -88,65 +95,11 @@ class load {
                         }
                     }
 
-                }
-
-            } else {    
-                
-                //Start building up filename.
-                //This is so regular files, like css files and 
-                //images, and javascript files will be loaded.
-                //Because my framework is built on RewriteRules in
-                //htaccess that hinders those to be loaded, we will
-                //do it codewise.
-                $file="";
-                
-                
-                //$params is the parameters passed to the $_GET["c"] variable.
-                //So we build up the file destination by building the 
-                //directories aswell in the string.
-                foreach($params as $dir)
-                {
-                    //Each $dir ends with a '/' symbol. 
-                    $file.=$dir."/";
-                }
-                
-                //Because the last parameter in the url is a file 
-                //we remove the last '/' added from above foreach-loop.
-                $file=rtrim($file,"/");
-
-                //Check if the file exists.
-                if(is_file($file))
-                {
-                    //Initiate a file info object.
-                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                    
-                    //Check mimetype by binding it to the fileinfo object as
-                    //first argument and the $file path as second argument
-                    $mime=finfo_file($finfo, $file);    
-                    
-                    //Get the extension of the file.
-                    $ext=(false === $pos = strrpos($file, '.')) ? '' : substr($file, $pos);
-                    
-                    //We just want to check if this is a php file then we 
-                    //do not accept that. 
-                    //User will not see the code anyway...
-                    //So no big harm really if the try to download some source-
-                    //code or config file.
-                    //But anyway they will get a downloaded file with some
-                    //errors and reference to some php class.
-                    //So then we just kick the user back one step.
-                    if($ext==".php") Header("Location: ../"); 
-                    
-                    //We are going to send mimetype of file in the headers
-                    //so the content will be deliveried correctly.
-                    header('Content-type:'.$mime.'');
-                    require $file;
-                    
                 } else {
-                    die();
-                    exit;
+                        $controller->index();
                 }
-            }
+
+            } 
         }
     }
 }
