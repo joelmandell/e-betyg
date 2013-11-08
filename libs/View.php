@@ -2,10 +2,17 @@
 
 class View {
 
-    var $model;
+    var $model=NULL;
     public $_M;
     
     function __construct() {
+        
+        //Initiate the $_M with a empty Model always.
+        //Because this one will be replaced anyway
+        //if user sets his model in setModel($model)
+        //This will make it possible to send variables
+        //to the View without an own model.
+        $this->_M=new Model();
     }
     
     function setModel($model=NULL)
@@ -13,7 +20,7 @@ class View {
         if($model!=NULL)
         {
             $this->model=$model;
-            include_once "models/".$this->model.".php";
+            require "models/".$this->model.".php";
             
             //Dynamically create a class
             //in this case we want to make the class from
@@ -27,25 +34,23 @@ class View {
     }
     
     function render($name)
-    {      
+    {              
         $file="views/".$name.".php";
         
         //This is the magic line that make's
         //it possible to discard the $this->_M in 
         //view files and instead send variables to 
         //the model by calling $_M->MyVariable.
-        $_M=$this->_M;   
-        
+        $_M=$this->_M;     
         
         //We want to be sure that the file 
         //that the user calls is existing.
         if(file_exists($file)===TRUE)
         {
-            include_once $file;
+            require $file;
         } else {
             $file="views/error/wrong_view.php";
-            include_once $file;
+            require $file;
         }        
     }
-
 }
