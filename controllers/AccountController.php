@@ -2,13 +2,19 @@
 
 require 'libs/pbkdf2.php';
 
+use ebetyg\Auth as Auth;
+use ebetyg\Group as Group;
+use ebetyg\Teacher as Teacher;
+use ebetyg\User as User;
+
 class AccountController extends Controller {
 
     public $_M, $db;
-    
+
     function __construct() {
        
         parent::__construct();
+
         
         //Instantiate the db class from 
         //parent Controller class.
@@ -19,10 +25,7 @@ class AccountController extends Controller {
     function index()
     {
         $this->view->setModel("AccountModel");
-
-        $this->_M->hash="MAMMA";
-        $this->view->render("account/index");  
-        
+        $this->view->render("account/index");          
     }
     
     function register()
@@ -32,26 +35,31 @@ class AccountController extends Controller {
     
     function SignIn()
     {
-        $o_pass=""; //Outputed password from db
-        $o_salt=""; //Outputed salt from db
-        $email=$_POST["user"];
-        $pass=$_POST["pass"];
-        
-        foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
+        //Todo: Move this snippet to the e-betyg Auth class.
+        if(isset($_POST["user"]))
         {
-            $o_pass=$i["password"];
-            $o_salt=$i["salt"];
-        }
-        
-        if(validate_password($pass.$o_salt,$o_pass))
-        {
-            $this->_M->hash="Lösenordet är rätt!";
+            $o_pass=""; //Outputed password from db
+            $o_salt=""; //Outputed salt from db
+            $email=$_POST["user"];
+            $pass=$_POST["pass"];
+
+            foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
+            {
+                $o_pass=$i["password"];
+                $o_salt=$i["salt"];
+            }
+
+            if(validate_password($pass.$o_salt,$o_pass))
+            {
+                $this->_M->hash="Lösenordet är rätt!";
+            } else {
+                $this->_M->hash="Lösenordet är fel!";
+            }
         } else {
-            $this->_M->hash="Lösenordet är fel!";
+            $this->_M->hash="Saknar argument";
         }
         
         $this->view->render("account/index");  
-
     }
     
     function SaltTest($password="kalle")
