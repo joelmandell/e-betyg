@@ -14,12 +14,18 @@ class DatabaseConnection {
         $user=constant("db_user");
         $host=constant("db_host");
         $charset=constant("db_charset");
+        $port=constant("db_port");
+        
         if($driver=="mysql")
         {
             //Create database class that user can call later.
-            $this->db = new PDO("mysql:host=".$host.";dbname="
-            .$dbname.";charset=".$charset,$user,$pass);
+            $conn="mysql:host=".$host.";port=".$port.";dbname="
+            .$dbname.";charset=".$charset;
+            
+            $this->db = new PDO($conn,$user,$pass);            
+
+        } else {
+            throw new Exception("Driver ".$driver." does not exist", "mysql", "");
         }
     }
-
 }
