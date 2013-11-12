@@ -25,7 +25,7 @@ class DatabaseConnection {
             $this->db = new PDO($conn,$user,$pass);            
 
         } else {
-            throw new Exception("Driver ".$driver." does not exist", "mysql", "");
+            throw new Exception("Driver ".$driver." does not exist", "DatabaseConnection", "");
         }
     }
 }
