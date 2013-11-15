@@ -4,6 +4,12 @@
 This is a MVC Framework coded and copyrighted by Joel Mandell 2013.
 For questions, please e-mail me at joelmandell@gmail.com
 */
+
+require $framework_path.'libs/DatabaseConnection.php';
+require $framework_path.'libs/Controller.php';
+require $framework_path.'libs/Model.php';
+require $framework_path.'libs/View.php';
+
 if(!isset($_GET['c']))
 {
     exit;
@@ -12,21 +18,42 @@ if(!isset($_GET['c']))
 session_start();
 
 class Router {
-
-    //TODO:
-    //Really in need to chunk the code into functions 
-    //and not have all code in the constructor.
     
-    function __construct()
+    public $bundle, $base_uri;
+    
+    function __construct($bundle=NULL)
     {
-        //$_DB=new DatabaseConnection("mysql", "e-betyg");
+        $this->bundle=$this;
+        $this->base_uri=constant("webapp_path");
 
+        if(isset($_GET["c"]))
+        {
+            $this->getRoute($_GET["c"]);
+        }
+    }
+
+    function passModelData($data)
+    {
+        //To implement - make a function in the model
+        //that iterates through $_SESSION according to the
+        //Model: convention. Then add variables to that model
+        //with the content of it.
+        $_SESSION["Model:".$data[0]]=$data[1];
+    }
+    
+    function doRedirect($uri="")
+    {
+       header("Location: {$this->base_uri}{$uri}");
+       
+    }
+    
+    function getRoute()
+    {
         if(isset($_GET["c"]))
         {
             $req=$_GET["c"];
             $params = explode("/", $req);
             $standard_controller=constant("index_controller");
-            
             if(count($params)>0)
             {
                 if($params[0]=="index.php" || $params[0]=="" || $params[0] == "/") 
@@ -54,20 +81,21 @@ class Router {
                     {
                         //We have a class like that and we instantiate
                         //that class as an controller object.
-                        $controller = new $clsName;
+                        $controller = new $clsName($this->bundle);
                     } else {
                         //If not load the standard controller class
                         //defined in the config/routes.php file.
                         $clsName=$standard_controller."Controller";
-                        $controller = new $clsName;
+                        $controller = new $clsName($this->bundle);
                     }
                 } else {
                     //If $params[0] is null aka url is www.example.com
                     //then load the standard controller.
                     $clsName=$standard_controller."Controller";
-                    $controller = new $clsName;    
+                    $controller = new $clsName($this->bundle);    
                 }
                 
+                                
                 //If params is not null then we can work with potential
                 //arguments. And if it is more than two items
                 //that means an method in controller was called aswell.
