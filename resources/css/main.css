@@ -1,5 +1,11 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
 body {
-    width:960px;
+    max-width:1200px;
+    min-width:320px;
     margin:0 auto;
     background-color:#99ccff;
 }
@@ -23,13 +29,12 @@ body p {
 }
 
 #page {
-    border:1px solid #006699;
     max-width:1200px;
     min-width:320px;
     float:left;
-    margin-top:25px;
     background-color:#fff;
-    top:0;
+    display: table; /*** For non-IE browsers ***/
+    height: 100%;
 }
 
 #text_left_content {
@@ -38,7 +43,6 @@ body p {
     min-width: 220px;
     width:75%;
     float:left;
-    left:0;
 }
 
 #text_right_content {
@@ -51,15 +55,59 @@ body p {
 #header {
     background-image:url("../img/strip_bg.png");
     background-repeat: repeat-x;
+    margin:0;
+    height:250px;
 }
 
 #nav {
     background-color:#0099cc;
     color:#fff;
     height:50px;
-    width:960px;
+    width:100%;
     border-top:1px solid #000;
     border-bottom:1px solid #000;
     font-family: Tahoma;
     float: left;
+}
+
+#nav ul {
+    display:block;
+    list-style-type:none;
+    float:left;
+    margin:0;
+    padding:0;
+}
+
+#nav li {
+    display:inline;
+    padding:1em;
+    float:left;
+}
+
+#nav li a {
+    color:#fff;
+    font-family: "Trebuchet MS";
+    text-decoration: none;
+    font-weight: bold;
+}
+
+form {
+    font-family: "Trebuchet MS";
+    font-size:14px;
+}
+
+form input {
+    border:1px solid #d3d3d3;
+    margin-bottom:5px;
+}
+
+form input[type="submit"]
+{
+    background-color: #0099cc;
+    color:#fff;
+    font-weight: bold;
+    padding:6px;
+}
+form label {
+    display:block;
 }
