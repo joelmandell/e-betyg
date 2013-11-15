@@ -11,7 +11,7 @@ $is_called=0;
 class Model {
 
     private $data = array();
-    
+    public $auth;
     function __construct() {
         
         global $is_called;
@@ -38,6 +38,13 @@ class Model {
         
         $is_called++;
 
+    }
+    
+    public function createLink($controller,$linkName)
+    {
+        global $base_uri;
+
+        return "<a href=".$base_uri."/".$controller.">".$linkName."</a>";
     }
     
     public function __get($key) {
