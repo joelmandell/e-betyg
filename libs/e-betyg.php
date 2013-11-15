@@ -10,9 +10,8 @@
  * @package e-betyg
  */
 
-
-
 require 'libs/pbkdf2.php';
+
 
 //Group-klassen innehåller funktioner för att ge grupptillhörigheter åt inloggad användare.
 class Group
@@ -55,46 +54,74 @@ class Group
 class Auth
 {
  
-	function __construct() {
-		print "In BaseClass constructor\n";
-	}
+    public $db;
+    
+    function __construct($db) {
+        $this->db = $db;
+
+    }
+    
+    function ValidateLogin()
+    {
+        if(isset($_POST["user"]))
+        {
+            $o_pass=""; //Outputed password from db
+            $o_salt=""; //Outputed salt from db
+            $email=$_POST["user"];
+            $pass=$_POST["pass"];
+
+            foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
+            {
+                $o_pass=$i["password"];
+                $o_salt=$i["salt"];
+            }
+
+            if(validate_password($pass.$o_salt,$o_pass))
+            {
+                return [true, "Lösenordet är rätt!"];
+            } else {
+                return [false, "Lösenordet är fel!"];
+            }
+        } else {
+            return [false, "Saknar argument"];
+        }
+    }
   
 }
  
 class Teacher extends User 
 {
  
-	function __construct() {
-		print "In BaseClass constructor\n";
-	}
+    function __construct() {
+
+    }
   
-	//Ge $value antingen värdet TRUE om konto ska aktiveras eller FALSE om det ska avaktiveras, andra argumentet är kontot som berörs.
-	function Activation(bool $value, $accountId)
-	{
+    //Ge $value antingen värdet TRUE om konto ska aktiveras eller FALSE om det ska avaktiveras, andra argumentet är kontot som berörs.
+    function Activation(bool $value, $accountId)
+    {
   
-	}
+    }
   
 }
- 
  
 class User
 {
  
-	function __construct() {
-		print "In BaseClass constructor\n";
-	}
- 
-	//$values är en vektor med användarinmatad information
-	//för att registrera sig - som skickas med en post request via ajax.
-	function Register($values)
-	{
-  	  
-	}
-  
-	function Login($values)
-	{
-  
-	}
+    function __construct() {
+
+    }
+
+    //$values är en vektor med användarinmatad information
+    //för att registrera sig - som skickas med en post request via ajax.
+    function Register($values)
+    {
+
+    }
+
+    function Login($values)
+    {
+
+    }
  
 }
 

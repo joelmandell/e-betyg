@@ -1,25 +1,21 @@
 <?php
 
-require 'libs/pbkdf2.php';
-
-use ebetyg\Auth as Auth;
-use ebetyg\Group as Group;
-use ebetyg\Teacher as Teacher;
-use ebetyg\User as User;
+require 'libs/e-betyg.php';
 
 class AccountController extends Controller {
 
-    public $_M, $db;
+    public $_M, $db, $auth, $r;
 
-    function __construct() {
-       
+    function __construct($bundle) {
         parent::__construct();
-
         
+        $this->r=$bundle; 
+        
+        ////Get router class that we 
         //Instantiate the db class from 
         //parent Controller class.
         $this->db=$this->db->db;
-
+        $this->auth=new Auth($this->db);
     }
 
     function index()
@@ -34,44 +30,20 @@ class AccountController extends Controller {
     }
     
     function SignIn()
-    {
-        //Todo: Move this snippet to the e-betyg Auth class.
-        if(isset($_POST["user"]))
+    {       
+        $validation = $this->auth->ValidateLogin();
+        
+        if($validation[0])
         {
-            $o_pass=""; //Outputed password from db
-            $o_salt=""; //Outputed salt from db
-            $email=$_POST["user"];
-            $pass=$_POST["pass"];
-
-            foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
-            {
-                $o_pass=$i["password"];
-                $o_salt=$i["salt"];
-            }
-
-            if(validate_password($pass.$o_salt,$o_pass))
-            {
-                $this->_M->hash="Lösenordet är rätt!";
-            } else {
-                $this->_M->hash="Lösenordet är fel!";
-            }
+            $this->_M->msg=$validation[1];
+            $this->view->render("account/index");  
         } else {
-            $this->_M->hash="Saknar argument";
+            //Send message from validation function to the router
+            //then the router will do our redirect.
+            $this->r->passModelData(["msg",$validation[1]]);
+            
+            //Withour argument it will take us to root.
+            $this->r->doRedirect(); 
         }
-        
-        $this->view->render("account/index");  
-    }
-    
-    function SaltTest($password="kalle")
-    {
-        //ABSOLUTE.
-        /* Algorithm to create hash and salt
-        $salt=create_hash($password);
-        $hashed_password=create_hash($password.$salt);
-        */
-        
-        $this->view->render("account/index");  
-
-    }
-    
+    }    
 }
