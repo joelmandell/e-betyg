@@ -5,17 +5,12 @@ This is a MVC Framework coded and copyrighted by Joel Mandell 2013.
 For questions, please e-mail me at joelmandell@gmail.com
 */
 
-require $framework_path.'libs/DatabaseConnection.php';
-require $framework_path.'libs/Controller.php';
-require $framework_path.'libs/Model.php';
-require $framework_path.'libs/View.php';
-
 if(!isset($_GET['c']))
 {
     exit;
 }
 
-session_start();
+global $base_uri;
 
 class Router {
     
@@ -26,6 +21,9 @@ class Router {
         $this->bundle=$this;
         $this->base_uri=constant("webapp_path");
 
+        global $base_uri;
+        $base_uri=$this->base_uri;
+        
         if(isset($_GET["c"]))
         {
             $this->getRoute($_GET["c"]);
@@ -43,8 +41,8 @@ class Router {
     
     function doRedirect($uri="")
     {
-       header("Location: {$this->base_uri}{$uri}");
-       
+       echo "FAST";
+       header("Location: {$this->base_uri}{$uri}"); 
     }
     
     function getRoute()
