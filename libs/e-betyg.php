@@ -4,31 +4,50 @@ require 'libs/pbkdf2.php';
 //Group-klassen innehåller funktioner för att ge grupptillhörigheter åt inloggad användare.
 class Group
 {
+    
+    private $auth, $db, $user;
  
-	function __construct() {
-	}
+    function __construct($db, $auth) {
+        $this->db=$db;
+        $this->auth = &$auth;
+    }
   
-	//Lista grupper från databas.
-	public function GetGroups()
-	{
-	}
-  
-	public function GetPriviligies()
-	{
-	}
-  
-	public function CheckUser($user)
-	{
-	}
- 
+    //Lista grupper från databas.
+    public function GetGroups()
+    {
+        $group=NULL;
+        if($this->auth->IsAuth())
+        {
+            foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
+            {
+                $group[$i["id"]]=$i["groupName"];
+            }
+            return $group;
+        }    
+    }
+    
+    public function GetPriviligies()
+    {
+    }
+
+    public function CheckUser($user)
+    {
+    }
+    
+    function __destruct() {
+       unset($this->db);
+       unset($this->auth);
+    }
 }
  
 class Auth
 {
-    public $db;
+    public $db, $group, $user;
     
     function __construct($db) {
         $this->db = $db->db;
+        $this->group = new Group($this->db, $this);
+        $this->user=new User();
     }
     
     function IsAuth()
@@ -61,21 +80,39 @@ class Auth
     {
         if(isset($_POST["user"]) & !isset($_SESSION["login"]))
         {
-            $o_pass=""; //Outputed password from db
-            $o_salt=""; //Outputed salt from db
+            $o_pass=NULL; //Outputed password from db
+            $o_salt=NULL; //Outputed salt from db
             $email=$_POST["user"];
             $pass=$_POST["pass"];
+            $UserId=NULL;
             
             foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
             {
                 $o_pass=$i["password"];
                 $o_salt=$i["salt"];
+                $UserId=$i["id"];
             }
 
             if(validate_password($pass.$o_salt,$o_pass))
             {
-                $_SESSION["login"]="true";
-                return [true, "Lösenordet är rätt!"];
+                foreach($this->db->query("SELECT * FROM userprop WHERE userId='".$UserId."'") as $i)
+                {
+                    $this->user->Approved=$i["approved"];
+                    $this->user->GroupId=$i["groupId"];
+                    $this->user->InvokedPriviligies=$i["invokePriviligies"];
+                    $this->user->UserId=$i["userId"];
+                }                
+                                
+                if($this->user->Approved)
+                {
+                    $_SESSION["login"]="true";
+                    $this->user->Email=$email;
+                    $_SESSION["user"]=$this->user;
+                    return [true, "Lösenordet är rätt!"];
+                } else {
+                    return [true, "Konto ej aktiverat!"];
+                }
+                
             } else {
                 return [false, "Lösenordet är fel!"];
             }
@@ -90,7 +127,6 @@ class Auth
  
 class Teacher extends User 
 {
- 
     function __construct() {
 
     }
@@ -99,30 +135,24 @@ class Teacher extends User
     function Activation(bool $value, $accountId)
     {
   
-    }
-  
+    } 
 }
  
-class User
-{
- 
+class UserProperties {
+    public $UserId, $GroupId, $UserPropertiesId;
+    
     function __construct() {
-
+        
     }
-
-    //$values är en vektor med användarinmatad information
-    //för att registrera sig - som skickas med en post request via ajax.
-    function Register($values)
-    {
-
-    }
-
-    function Login($values)
-    {
-
-    }
- 
 }
 
-  
+class User extends UserProperties
+{
+    public $Email, $InvokedPriviligies, $Approved;
+    
+    function __construct() {
+        parent::__construct();
+    }
+} 
+
 ?>  
