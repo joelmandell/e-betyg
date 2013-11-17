@@ -3,31 +3,39 @@ require 'libs/pbkdf2.php';
 
 //Group-klassen innehåller funktioner för att ge grupptillhörigheter åt inloggad användare.
 class Group
-{
-    
+{    
     private $auth, $db, $user;
  
-    function __construct($db, $auth) {
-        $this->db=$db;
+    function __construct(&$db, &$auth, &$user) {
+        $this->db=&$db;
         $this->auth = &$auth;
+        $this->user=&$user;
     }
   
     //Lista grupper från databas.
     public function GetGroups()
     {
         $group=NULL;
-        if($this->auth->IsAuth())
-        {
+
             foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
             {
                 $group[$i["id"]]=$i["groupName"];
             }
             return $group;
-        }    
+   
     }
     
-    public function GetPriviligies()
+    function GetPriviligies()
     {
+        if($this->auth->IsAuth())
+        {
+            $GroupID=$this->user->GroupId;
+            foreach($this->db->query("SELECT * FROM `group` WHERE id='".$GroupID."'") as $i)
+            {
+                $this->user->GroupName=$i["groupName"];
+            }
+        }
+        return $this->user->GroupName;
     }
 
     public function CheckUser($user)
@@ -46,23 +54,13 @@ class Auth
     
     function __construct($db) {
         $this->db = $db->db;
-        $this->group = new Group($this->db, $this);
-        $this->user=new User();
+        isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
+        $this->group = new Group($this->db, $this, $this->user);  
     }
     
     function IsAuth()
     {
-        if(isset($_SESSION["login"]))
-        {
-            if($_SESSION["login"]=="true")
-            {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return isset($_SESSION["login"])=="true" ? true : false;
     }
     
     function Logout()
@@ -71,8 +69,7 @@ class Auth
         {
             $s=NULL;
             unset($s);
-        }
-        
+        }    
         session_destroy();
     }
     
@@ -102,17 +99,17 @@ class Auth
                     $this->user->InvokedPriviligies=$i["invokePriviligies"];
                     $this->user->UserId=$i["userId"];
                 }                
-                                
+                                   
                 if($this->user->Approved)
                 {
                     $_SESSION["login"]="true";
                     $this->user->Email=$email;
                     $_SESSION["user"]=$this->user;
+                    $this->group->GetPriviligies();
                     return [true, "Lösenordet är rätt!"];
                 } else {
                     return [true, "Konto ej aktiverat!"];
-                }
-                
+                }       
             } else {
                 return [false, "Lösenordet är fel!"];
             }
@@ -139,7 +136,8 @@ class Teacher extends User
 }
  
 class UserProperties {
-    public $UserId, $GroupId, $UserPropertiesId;
+    public $UserId, $GroupId, $UserPropertiesId, $InvokedPriviligies,
+            $Approved, $GroupName;
     
     function __construct() {
         
@@ -148,10 +146,11 @@ class UserProperties {
 
 class User extends UserProperties
 {
-    public $Email, $InvokedPriviligies, $Approved;
+    public $Email;
     
     function __construct() {
         parent::__construct();
+        
     }
 } 
 
