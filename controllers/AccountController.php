@@ -2,17 +2,14 @@
 
 class AccountController extends Controller {
 
-    public $_M, $db, $r, $auth;
+    public $_M, $db, $r, $auth, $user, $group;
 
     function __construct($bundle) {
         parent::__construct();
         $this->r=$bundle; 
-        
-        ////Get router class that we 
-        //Instantiate the db class from 
-        //parent Controller class.
+        isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user = new User();
         $this->db=$this->db->db;
-        
+        $this->group=new Group($this->db, $this->auth, $this->user);
     }
 
     function index()
@@ -21,9 +18,98 @@ class AccountController extends Controller {
         $this->view->render("account/index");          
     }
     
-    function register()
+    function Delete($what=NULL)
     {
-        
+        $group=$this->group;
+        if($this->auth->IsAuth())
+        {
+            //If we have possibility to do things that requires certain privs
+            //and if we belong to the admin group we should be allowed to do
+            //EVERYTHING!
+            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            {
+                if($what=="Group")
+                {
+                    if(isset($_POST["groupName"])){                   
+                        $group->Delete($_POST["groupName"]);              
+                    }   
+                } else if($what=="Document") {
+                    //TODO:AJAX
+                } else if($what=="User") {
+                    //TODO:AJAX
+                } else {
+ 
+                }
+            }
+        }
+    }
+    
+    function Create($what=NULL)
+    {
+        $group=$this->group;
+        if($this->auth->IsAuth())
+        {
+            //If we have possibility to do things that requires certain privs
+            //and if we belong to the admin group we should be allowed to do
+            //EVERYTHING!
+            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            {
+                if($what=="Group")
+                {
+                    if(isset($_POST["groupName"])){               
+                        $group->Create($_POST["groupName"]);  
+                    }   
+                } else if($what=="Document") {
+                    //TODO:AJAX
+                } else if($what=="User") {
+                    //TODO:AJAX
+                } else {
+ 
+                }
+            }
+        }
+    }
+    
+    function Edit($what=NULL)
+    {
+        $group=$this->group;
+        if($this->auth->IsAuth())
+        {
+            //If we have possibility to do things that requires certain privs
+            //and if we belong to the admin group we should be allowed to do
+            //EVERYTHING!
+            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            {
+                $users=NULL;
+                if($what=="Groups")
+                {
+                    if(isset($_POST["id"])){
+                        
+                        if($group->GetUsers($_POST["id"]))
+                        {
+                            foreach($group->GetUsers($_POST["id"]) as $gUser)
+                            {
+                                $users.=$gUser."&nbsp;<a href=\"#remove\" id=\"remove_user\">Radera</a>&nbsp;&nbsp;"
+                                        . "<a href=\"#inactivate\" id=\"inactivate_user\">Inaktivera</a><br />";
+                            }
+                            $this->_M->users=$users;
+
+                        } else {
+                            $this->_M->users="Inga användare i gruppen ännu";
+                        }
+                    }
+                    
+                    $this->view->render("ajax/groups");                     
+                } else if($what=="Documents") {
+                    //TODO:AJAX
+                } else if($what=="Users") {
+                    //TODO:AJAX
+                } else {
+                    $this->view->setModel("EditModel");
+                    $this->view->render("account/edit");  
+                }
+            }
+        }
     }
     
     function SignOut()
@@ -47,7 +133,6 @@ class AccountController extends Controller {
             $this->r->doRedirect(); 
         }
         
-        //Without argument it will take us to root page.
         $this->r->doRedirect();  
     }    
 }
