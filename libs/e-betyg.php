@@ -12,17 +12,67 @@ class Group
         $this->user=&$user;
     }
   
+    public function DeleteGroup($name)
+    {
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        {
+            $id="";
+            foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+            {
+                $id=$i["id"];
+            }
+            
+            $this->db->query("DELETE FROM `group` WHERE groupName ='".$name."');");
+            echo $id;
+        }
+    }
+    
+    public function CreateGroup($name)
+    {
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        {
+            $this->db->query("INSERT INTO `group` (groupName) VALUES('".$name."');");
+            
+            $id="";
+            foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+            {
+                $id=$i["id"];
+            }
+            echo $id;
+        }
+    }
+    
     //Lista grupper från databas.
     public function GetGroups()
     {
         $group=NULL;
-
+        if($this->auth->IsAuth())
+        {
             foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
             {
                 $group[$i["id"]]=$i["groupName"];
             }
             return $group;
-   
+        } else {
+            return false;
+        }
+    }
+    
+        //Lista grupper från databas.
+    public function GetUsers($groupId)
+    {
+        $users=NULL;
+        if($this->auth->IsAuth())
+        {
+            foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT groupId
+            FROM userprop WHERE groupId ='".$groupId."');") as $i)
+            {
+                $users[$i["id"]]=$i["email"];
+            }
+            return $users;
+        } else {
+            return false;
+        }
     }
     
     function GetPriviligies()
@@ -34,14 +84,12 @@ class Group
             {
                 $this->user->GroupName=$i["groupName"];
             }
+            return $this->user->GroupName;
+        } else {
+            return false;
         }
-        return $this->user->GroupName;
     }
 
-    public function CheckUser($user)
-    {
-    }
-    
     function __destruct() {
        unset($this->db);
        unset($this->auth);
@@ -92,6 +140,9 @@ class Auth
 
             if(validate_password($pass.$o_salt,$o_pass))
             {
+                //Find User properties and add the to our user object
+                //that later will be stored in a session, so we can use it
+                //across the user logged in session.
                 foreach($this->db->query("SELECT * FROM userprop WHERE userId='".$UserId."'") as $i)
                 {
                     $this->user->Approved=$i["approved"];
@@ -105,6 +156,7 @@ class Auth
                     $_SESSION["login"]="true";
                     $this->user->Email=$email;
                     $_SESSION["user"]=$this->user;
+                    //Store the priviligies:
                     $this->group->GetPriviligies();
                     return [true, "Lösenordet är rätt!"];
                 } else {
