@@ -11,10 +11,12 @@ $is_called=0;
 class Model {
 
     private $data = array();
-    public $auth;
-    function __construct() {
-        
+    public $auth, $group, $db, $user, $jslibs;
+    
+    function __construct(&$db, &$auth, &$group) {
+   
         global $is_called;
+        $this->jslibs=new ArrayObject();
 
         if($is_called==1)
         {
@@ -30,6 +32,7 @@ class Model {
                     
                     //We don't need this data anymore, so remove this
                     //session variable.
+                    $_SESSION[$name]=NULL;
                     unset($_SESSION[$name]);
                 }
             }
@@ -37,7 +40,15 @@ class Model {
         }
         
         $is_called++;
-
+        isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
+        $this->auth=$auth;
+        $this->db=$db;
+    }
+    
+    public function addJsLibrary($file)
+    {
+        global $base_uri;
+        $this->jslibs[]=$base_uri."/resources/js/".$file;
     }
     
     public function createLink($controller,$linkName)
