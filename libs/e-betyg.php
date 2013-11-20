@@ -12,22 +12,36 @@ class Group
         $this->user=&$user;
     }
   
-    public function DeleteGroup($name)
+    public function Delete($name)
     {
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
             $id="";
-            foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+
+            if($name!="ADMIN")
             {
-                $id=$i["id"];
+                $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName ='".$name."');");
+                $this->db->query("DELETE FROM `group` WHERE groupName ='".$name."';");
+
+                foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+                {
+                    $id=$i["id"];
+                }
+                
+                if($id=="")
+                {
+                    echo "true";
+                } else {
+                    echo "false";
+                }
+                
+            } else {
+                echo "false";
             }
-            
-            $this->db->query("DELETE FROM `group` WHERE groupName ='".$name."');");
-            echo $id;
         }
     }
     
-    public function CreateGroup($name)
+    public function Create($name)
     {
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
@@ -64,7 +78,7 @@ class Group
         $users=NULL;
         if($this->auth->IsAuth())
         {
-            foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT groupId
+            foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT userId
             FROM userprop WHERE groupId ='".$groupId."');") as $i)
             {
                 $users[$i["id"]]=$i["email"];
