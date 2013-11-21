@@ -4,18 +4,27 @@
  * and open the template in the editor.
  */
 
+if ("ontouchstart" in document.documentElement)
+{
+    var browserEvent = "touchstart";
+}
+else
+{
+    var browserEvent = "click";
+}
+
 $('#edit_groups').on('change', function() {
     var name = $('option:selected', this).attr('value');  
     Edit(name);
 });
 
-$('#create_group').on('click', function() {
+$('#create_group').on(browserEvent, function() {
     var name = prompt("Vad skall gruppen heta?", "");   
     Create(name);
 });
 
 
-$('#delete_group').on('click', function() {
+$('#delete_group').on(browserEvent, function() {
     var name = $("#edit_groups option:selected").text()
     Delete(name);
 });
