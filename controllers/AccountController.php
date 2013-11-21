@@ -8,7 +8,6 @@ class AccountController extends Controller {
         parent::__construct();
         $this->r=$bundle; 
         isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user = new User();
-        $this->db=$this->db->db;
         $this->group=new Group($this->db, $this->auth, $this->user);
     }
 
@@ -130,7 +129,6 @@ class AccountController extends Controller {
             //Send message from validation function to the router
             //then the router will do our redirect.
             $this->r->passModelData(["msg",$validation[1]]);
-            $this->r->doRedirect(); 
         }
         
         $this->r->doRedirect();  

@@ -2,17 +2,17 @@
 
 class View {
 
-    var $model=NULL;
-    public $_M;
+    public $model=NULL, $_M, $auth, $user, $group, $db;
     
-    function __construct() {
+    function __construct(&$db) {
+        $this->auth=new Auth($db);
+        $this->db=$db;
         
         //Initiate the $_M with a empty Model always.
-        //Because this one will be replaced anyway
-        //if user sets his model in setModel($model)
-        //This will make it possible to send variables
-        //to the View without an own model.
-        $this->_M=new Model();
+        $this->_M=new Model($db, $this->auth, $this->group);
+
+        isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
+        $this->group=new Group($db, $this->auth, $this->user);     
     }
     
     function setModel($model=NULL)
@@ -20,16 +20,14 @@ class View {
         if($model!=NULL)
         {
             $this->model=$model;
+            //$this->model->auth=&$this->auth;
             require "models/".$this->model.".php";
             
-            //Dynamically create a class
-            //in this case we want to make the class from
-            //user choosen model in their Controller.
-            $cls=$this->model;
+            $class=$this->model;
             
             //Make sure that View class variable $_M
             //get's insantiated as Model Class Object.
-            $this->_M=new $cls;
+            $this->_M=new $class($this->db, $this->auth, $this->group);
         }
     }
     
@@ -37,14 +35,17 @@ class View {
     {              
         $file="views/".$name.".php";
         
-        //This is the magic line that make's
-        //it possible to discard the $this->_M in 
-        //view files and instead send variables to 
-        //the model by calling $_M->MyVariable.
-        $_M=$this->_M;     
-        
-        //We want to be sure that the file 
-        //that the user calls is existing.
+        //magic lines: discard the need of using $this-> in view files.
+        $_M=&$this->_M;     
+        $user=&$this->user;
+        $group=&$this->group;
+        $auth=&$this->auth;
+        $js="";
+        foreach($_M->jslibs as $jslib)
+        {
+            $js.="<script src=\"".$jslib."\"></script>\n";
+        }
+                
         if(file_exists($file)===TRUE)
         {
             require $file;

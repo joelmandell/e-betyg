@@ -20,10 +20,10 @@ class Group
 
             if($name!="ADMIN")
             {
-                $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName ='".$name."');");
-                $this->db->query("DELETE FROM `group` WHERE groupName ='".$name."';");
+                $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
+                $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
 
-                foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+                foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
                 {
                     $id=$i["id"];
                 }
@@ -45,10 +45,10 @@ class Group
     {
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
-            $this->db->query("INSERT INTO `group` (groupName) VALUES('".$name."');");
+            $this->db->query("INSERT INTO `group` (groupName) VALUES(?);",[$name]);
             
             $id="";
-            foreach($this->db->query("SELECT * FROM `group` WHERE groupName = '".$name."'") as $i)
+            foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
             {
                 $id=$i["id"];
             }
@@ -79,7 +79,7 @@ class Group
         if($this->auth->IsAuth())
         {
             foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT userId
-            FROM userprop WHERE groupId ='".$groupId."');") as $i)
+            FROM userprop WHERE groupId =?);", [$groupId]) as $i)
             {
                 $users[$i["id"]]=$i["email"];
             }
@@ -94,7 +94,7 @@ class Group
         if($this->auth->IsAuth())
         {
             $GroupID=$this->user->GroupId;
-            foreach($this->db->query("SELECT * FROM `group` WHERE id='".$GroupID."'") as $i)
+            foreach($this->db->query("SELECT * FROM `group` WHERE id=?",[$GroupID]) as $i)
             {
                 $this->user->GroupName=$i["groupName"];
             }
@@ -115,7 +115,7 @@ class Auth
     public $db, $group, $user;
     
     function __construct($db) {
-        $this->db = $db->db;
+        $this->db = $db;
         isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
         $this->group = new Group($this->db, $this, $this->user);  
     }
@@ -145,11 +145,11 @@ class Auth
             $pass=$_POST["pass"];
             $UserId=NULL;
             
-            foreach($this->db->query("SELECT * FROM user WHERE email='".$email."'") as $i)
+            foreach($this->db->query("SELECT * FROM user WHERE email=?",[$email]) as $i)
             {
                 $o_pass=$i["password"];
                 $o_salt=$i["salt"];
-                $UserId=$i["id"];
+                $UserId=$i["id"];                                
             }
 
             if(validate_password($pass.$o_salt,$o_pass))
@@ -157,14 +157,14 @@ class Auth
                 //Find User properties and add the to our user object
                 //that later will be stored in a session, so we can use it
                 //across the user logged in session.
-                foreach($this->db->query("SELECT * FROM userprop WHERE userId='".$UserId."'") as $i)
+                foreach($this->db->query("SELECT * FROM userprop WHERE userId=?",[$UserId]) as $i)
                 {
                     $this->user->Approved=$i["approved"];
                     $this->user->GroupId=$i["groupId"];
                     $this->user->InvokedPriviligies=$i["invokePriviligies"];
                     $this->user->UserId=$i["userId"];
                 }                
-                                   
+               
                 if($this->user->Approved)
                 {
                     $_SESSION["login"]="true";

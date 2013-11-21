@@ -21,7 +21,7 @@ class Controller {
         {
             //There is always a View class available
             //when controller is called as $_GET request
-            $this->view = new View($bundle);
+            $this->view = new View($this->db);
             $this->view->auth=&$this->auth;
             
             //In the View class there is a Model class 
