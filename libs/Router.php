@@ -32,16 +32,11 @@ class Router {
 
     function passModelData($data)
     {
-        //To implement - make a function in the model
-        //that iterates through $_SESSION according to the
-        //Model: convention. Then add variables to that model
-        //with the content of it.
         $_SESSION["Model:".$data[0]]=$data[1];
     }
     
     function doRedirect($uri="")
     {
-       echo "FAST";
        header("Location: {$this->base_uri}{$uri}"); 
     }
     
@@ -72,27 +67,26 @@ class Router {
                 if($params[0]!="")
                 {
                     //Build the class name for the Controller to load.
-                    $clsName=$params[0]."Controller";
+                    $class=$params[0]."Controller";
                     
                     //Do we have a class with that name?
-                    if(class_exists($clsName))
+                    if(class_exists($class))
                     {
                         //We have a class like that and we instantiate
                         //that class as an controller object.
-                        $controller = new $clsName($this->bundle);
+                        $controller = new $class($this->bundle);
                     } else {
                         //If not load the standard controller class
                         //defined in the config/routes.php file.
-                        $clsName=$standard_controller."Controller";
-                        $controller = new $clsName($this->bundle);
+                        $class=$standard_controller."Controller";
+                        $controller = new $class($this->bundle);
                     }
                 } else {
                     //If $params[0] is null aka url is www.example.com
                     //then load the standard controller.
-                    $clsName=$standard_controller."Controller";
-                    $controller = new $clsName($this->bundle);    
-                }
-                
+                    $class=$standard_controller."Controller";
+                    $controller = new $class($this->bundle);    
+                }    
                                 
                 //If params is not null then we can work with potential
                 //arguments. And if it is more than two items
