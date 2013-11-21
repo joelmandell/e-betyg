@@ -2,13 +2,14 @@
 
 class DatabaseConnection {
 
-    var $driver, $db, $dbname;
+    public $driver, $db, $dbname;
+    public $error;
            
     function __construct($driver="mysql", $dbname="mysql") {
         $this->driver=$driver;
         $this->dbname=$dbname;
         $this->db=null;
-        
+        $this->error=null;
         //Load some constants stored in config/routes.php
         $pass=constant("db_pass");
         $user=constant("db_user");
@@ -58,7 +59,17 @@ class DatabaseConnection {
                     }
                 }
             }
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);;
+            
+            if (!$stmt->execute()) {
+		if ($db->errno === 1062 /* ER_DUP_ENTRY */)
+                {
+                    $this->error = $db->errno;
+                } else {
+			echo $db->error;
+                }       
+            } else {
+                $this->error=null;
+            }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);;
     }
 }

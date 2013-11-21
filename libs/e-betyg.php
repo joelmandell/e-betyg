@@ -1,5 +1,5 @@
 <?php
-require 'libs/pbkdf2.php';
+require 'libs/PasswordHash.php';
 
 //Group-klassen innehåller funktioner för att ge grupptillhörigheter åt inloggad användare.
 class Group
@@ -14,6 +14,11 @@ class Group
   
     public function Delete($name)
     {
+        if(filter_var($name,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
+            echo "false";
+            exit;
+        }   
+        
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
             $id="";
@@ -43,6 +48,11 @@ class Group
     
     public function Create($name)
     {
+        if(filter_var($name,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
+            echo "false";
+            exit;
+        }   
+        
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
             $this->db->query("INSERT INTO `group` (groupName) VALUES(?);",[$name]);
@@ -113,16 +123,61 @@ class Group
 class Auth
 {
     public $db, $group, $user;
+    private $hasher;
     
     function __construct($db) {
         $this->db = $db;
         isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
         $this->group = new Group($this->db, $this, $this->user);  
+        $this->hasher = new PasswordHash(8, FALSE);     
     }
     
     function IsAuth()
     {
         return isset($_SESSION["login"])=="true" ? true : false;
+    }
+    
+    function Register()
+    {
+        $email=$_POST["user"];
+        $pass=$_POST["pass"];
+        
+        if(filter_var($pass,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
+            return [false, "Ogiltiga lösenords-tecken."];    
+        }
+
+        if($email=="" && $pass=="")
+        {
+            return [false, "Användarnamn och lösen saknas."];
+        }
+
+        if($email=="")
+        {
+            return [false, "Användarnamn saknas."];
+        }
+
+        if(filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return [false, "Ogiltig email."];
+        }    
+        
+        if(strlen($pass) < 8)
+        {
+            return [false, "Lösenordet är för kort, det behövs minst 8 tecken."];
+        }
+        
+        $salt=$this->hasher->HashPassword($pass);
+        $pass_hash=$this->hasher->HashPassword($pass.$salt);
+        $this->db->query("INSERT INTO `user` (email,password, salt) VALUES(?,?,?);",[$email,$pass_hash,$salt]); 
+       
+        //MySQL will return error if there is a user already, and that errno is 1062.
+        if($this->db->error==1062)
+        {
+            return [false, "En användare med den emailadressen är redan registrerad."];    
+        }
+        
+        $this->db->query("INSERT INTO `userprop` (userId) SELECT id FROM user WHERE email = ?;",[$email]); 
+
+        return [true, "Ditt konto har skapats. Meddela en datoransvarig om att aktivera kontont."];    
     }
     
     function Logout()
@@ -143,8 +198,27 @@ class Auth
             $o_salt=NULL; //Outputed salt from db
             $email=$_POST["user"];
             $pass=$_POST["pass"];
-            $UserId=NULL;
+
+            if(filter_var($pass,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
+                return [false, "Ogiltiga lösenords-tecken."];    
+            }
             
+            if($email=="" && $pass=="")
+            {
+                return [false, "Användarnamn och lösen saknas."];
+            }
+            
+            if($email=="")
+            {
+                return [false, "Användarnamn saknas."];
+            }
+            
+            if(filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                return [false, "Ogiltig email."];
+            } 	
+                
+            $UserId=NULL;
+          
             foreach($this->db->query("SELECT * FROM user WHERE email=?",[$email]) as $i)
             {
                 $o_pass=$i["password"];
@@ -152,7 +226,7 @@ class Auth
                 $UserId=$i["id"];                                
             }
 
-            if(validate_password($pass.$o_salt,$o_pass))
+            if($this->hasher->CheckPassword($pass.$o_salt,$o_pass))
             {
                 //Find User properties and add the to our user object
                 //that later will be stored in a session, so we can use it
@@ -165,7 +239,7 @@ class Auth
                     $this->user->UserId=$i["userId"];
                 }                
                
-                if($this->user->Approved)
+                if($this->user->Approved=="1")
                 {
                     $_SESSION["login"]="true";
                     $this->user->Email=$email;
@@ -174,7 +248,7 @@ class Auth
                     $this->group->GetPriviligies();
                     return [true, "Lösenordet är rätt!"];
                 } else {
-                    return [true, "Konto ej aktiverat!"];
+                    return [false, "Konto ej aktiverat!"];
                 }       
             } else {
                 return [false, "Lösenordet är fel!"];
