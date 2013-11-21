@@ -111,6 +111,25 @@ class AccountController extends Controller {
         }
     }
     
+    function Register()
+    {
+        if($_POST)
+        {
+            $action=$this->auth->Register();
+            if($action[0])
+            {
+                $this->r->passModelData(["register_success",$action[1]]);
+                $this->r->doRedirect("/Account/");
+            } else {
+                $this->r->passModelData(["register_fail",$action[1]]);
+                $this->r->doRedirect("/Account/Register/");
+            }
+        } else {
+            $this->view->setModel("RegisterModel");
+            $this->view->render("account/register");   
+        }
+    }
+    
     function SignOut()
     {
         $this->auth->Logout();
