@@ -56,8 +56,6 @@ function Delete(name)
                 }
             }
         });
-    } else {
-        alert("You ARE A COWARDDD!");
     }
 }
 
