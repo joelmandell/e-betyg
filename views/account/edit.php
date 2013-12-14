@@ -18,11 +18,17 @@
             <ul>
                 
                 <li><a href="/e-betyg/">Start</a></li>
-                <li><a href="#">Felanmälan</a></li>
-                <li><a href="#">Ladda upp dokument</a></li>
-                
                 <?php
-                    if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
+                echo $auth->IsAuth() ? "" : $_M->register;
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->upload : "";
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->account : "";
+                ?>
+                <?php
+                    if($user->InvokedPriviligies)
                     {
                         echo $_M->edit;
                     }
@@ -40,7 +46,7 @@
             <?php echo $_M->h1; ?>
             <?php echo $_M->p; ?>
             <?php
-                if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
+                if($user->InvokedPriviligies)
                 {
                     echo $_M->edit_view;
                 }
@@ -53,11 +59,12 @@
             {
                echo $_M->login_form; 
             } else {
-                if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
+                if($user->InvokedPriviligies)
                 {
                     echo $_M->edit_options;
                     echo $_M->create_group;
                     echo $_M->delete_group;
+                    echo $_M->edit_activate_users;
                 }
             }
             ?>
