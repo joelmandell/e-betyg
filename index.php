@@ -10,6 +10,7 @@ require $framework_path.'libs/Model.php';
 require $framework_path.'libs/View.php';
 session_start();
 session_regenerate_id();
+date_default_timezone_set("Europe/Stockholm");
 
 $router = new Router();
 
