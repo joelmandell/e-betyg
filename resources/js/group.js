@@ -69,12 +69,11 @@ function Create(name)
     {
         $.post(work_uri,{groupName:name},function( data ) {
             id=data;
-
             if(!isNaN(data))
             {
-                $.each({id:name }, function(key, value) {   
+                $.each({id:name }, function(key, value) {  
                     $('#edit_groups')
-                         .append($('<option>', { value : key })
+                         .append($('<option>', { value : data })
                          .text(value)); 
                });
             } else {
