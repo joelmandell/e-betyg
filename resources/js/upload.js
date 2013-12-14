@@ -9,19 +9,28 @@ else
 
 var group=null;
 var type=null;
+var selectedfile=null;
 
-$('#test').on('click', function() {
+$('#send').on('click', function() {
 
     if(group!=null)
     {
         var file=$('#selfile').get(0).files[0];
-
+        var reader = new FileReader();
+        selectedfile=file;
+        reader.readAsText(file);
+        
         var base_uri=document.location.href.replace("http://"+document.domain,'');
         var base_uri=base_uri.replace("#","");
 
         var fd = new FormData();
         fd.append("file", file);
-        
+        fd.append("group", group);
+        fd.append("mime", file.type);
+        fd.append("usercomment", $("#usercomment").val());
+        fd.append("filename",selectedfile.name);    
+        $('input[name=groupPublic]').is(':checked') ? fd.append("groupPublic","1") : fd.append("groupPublic","0");
+
         var progressBar = document.querySelector('progress');
         $("#prog").show();
 
@@ -40,7 +49,17 @@ $('#test').on('click', function() {
             if (this.status == 200) {
                 var resp = this.response;
                 $("#prog").hide();
-                $("#upload_view").html("Filen är uppladdad!");
+                if(resp.contains("true"))
+                {
+                    $("#usercomment").val("");
+                    $("#selfile").val("");
+                    $("#file_choice_layer").hide();
+                    $('input[name=groupPublic]').attr('checked', false);
+                    $("#send").hide();
+                    alert("Filen har laddats upp!");
+                } else {
+                    alert("Misslyckades ladda upp. Försök igen!");
+                }
             };
         };
 
@@ -63,6 +82,13 @@ function fileLoaded(f)
 $('#select_group').on('change', function() {
     group= $('option:selected', this).attr('value');  
  
+});
+
+$("#selfile").on("change", function() {
+    selectedfile=$('#selfile').get(0).files[0];
+    $("#file_choice_layer").show();
+    $("#file_choice").html(selectedfile.name); 
+    $("#send").show();
 });
 
 filepick.addEventListener("click", function (e) {
