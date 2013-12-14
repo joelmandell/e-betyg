@@ -2,13 +2,15 @@
 
 class AccountController extends Controller {
 
-    public $_M, $db, $r, $auth, $user, $group;
+    public $_M, $db, $r, $auth, $user, $group, $upload, $doc;
 
     function __construct($bundle) {
         parent::__construct();
         $this->r=$bundle; 
         isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user = new User();
         $this->group=new Group($this->db, $this->auth, $this->user);
+        $this->doc=new Doc($this->db);
+        $this->upload=new Upload($this->db, $this->auth, $this->group, $this->doc);
     }
 
     function index()
@@ -25,7 +27,7 @@ class AccountController extends Controller {
             //If we have possibility to do things that requires certain privs
             //and if we belong to the admin group we should be allowed to do
             //EVERYTHING!
-            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            if($this->user->InvokedPriviligies)
             {
                 if($what=="Group")
                 {
@@ -77,7 +79,7 @@ class AccountController extends Controller {
             //If we have possibility to do things that requires certain privs
             //and if we belong to the admin group we should be allowed to do
             //EVERYTHING!
-            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            if($this->user->InvokedPriviligies)
             {
                 $users=NULL;
                 if($what=="Groups")
@@ -111,6 +113,29 @@ class AccountController extends Controller {
         }
     }
     
+    function Upload()
+    {
+        if($_FILES)
+        {
+            if($this->auth->IsAuth())
+            {
+                $this->doc->groupId=$_POST["group"];
+                $this->doc->mime=$_POST["mime"];
+                $this->doc->userId=$this->user->UserId;
+                $this->doc->dateUploaded=date("Y-m-d H:i:s");
+                $this->doc->fileName=$_POST["filename"];
+                $this->doc->groupPublic=$_POST["groupPublic"];
+                $this->doc->usercomment=$_POST["usercomment"];
+                $this->upload->updateDoc($this->doc);
+                $this->upload->store($_FILES["file"]["tmp_name"]);
+
+            }
+        } else {
+            $this->view->setModel("UploadModel");
+            $this->view->render("account/upload");  
+        }
+    }
+   
     function Register()
     {
         if($_POST)
