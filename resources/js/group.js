@@ -41,7 +41,7 @@ function Delete(name)
         var work_uri=base_uri.replace("/Edit/","/Delete/Group/");
         
         $.post(work_uri,{groupName:name},function( data ) {
-            
+
             if(data.contains("true"))
             {
                 $("#edit_groups option:selected").remove();
@@ -69,12 +69,17 @@ function Create(name)
     {
         $.post(work_uri,{groupName:name},function( data ) {
             id=data;
-            $.each({id:name }, function(key, value) {   
-                $('#edit_groups')
-                     .append($('<option>', { value : key })
-                     .text(value)); 
-           });
-        
+
+            if(!isNaN(data))
+            {
+                $.each({id:name }, function(key, value) {   
+                    $('#edit_groups')
+                         .append($('<option>', { value : key })
+                         .text(value)); 
+               });
+            } else {
+                alert("Du har inga rättigheter för detta!");
+            }
         
         }, "text"); 
         
