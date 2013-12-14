@@ -18,9 +18,15 @@
             <ul>
                 
                 <li><a href="/e-betyg/">Start</a></li>
-                <li><a href="#">Felanmälan</a></li>
-                <li><a href="#">Ladda upp dokument</a></li>
-                
+                <?php
+                echo $auth->IsAuth() ? "" : $_M->register;
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->upload : "";
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->account : "";
+                ?>      
                 <?php
                     if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
                     {
@@ -58,14 +64,14 @@
             </div>
         </div>
     </div>   
-           <div id="foot">
-            <div id="foot_content">
-            <a href="http://github.com/joelmandell"><img id="social" src="/e-betyg/resources/img/Octocat.png" /></a><a href="http://plus.google.com/+joelmandell"><img id="social" src="/e-betyg/resources/img/gplus-64.png" /></a><a href="http://twitter.com/dikatlon"><img id="social" src="/e-betyg/resources/img/Twitter_logo_white.png" /></a>
-            <p>Copyright Joel Mandell 2013-2014</p>
-            </div>
+    <div id="foot">
+        <div id="foot_content">
+        <a href="http://github.com/joelmandell"><img id="social" src="/e-betyg/resources/img/Octocat.png" /></a><a href="http://plus.google.com/+joelmandell"><img id="social" src="/e-betyg/resources/img/gplus-64.png" /></a><a href="http://twitter.com/dikatlon"><img id="social" src="/e-betyg/resources/img/Twitter_logo_white.png" /></a>
+        <p>Copyright Joel Mandell 2013-2014</p>
         </div>
-        <?php
-        echo $js;
-        ?>
+    </div>
+    <?php
+    echo $js;
+    ?>
 </body>
 </html>

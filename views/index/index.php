@@ -14,8 +14,15 @@
             <ul>
                 
                 <li><a href="#">Start</a></li>
-                <li><a href="Account/Register/">Registrera dig</a></li>
-                
+                <?php
+                echo $auth->IsAuth() ? "" : $_M->register;
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->upload : "";
+                ?>
+                <?php
+                echo $auth->IsAuth() ? $_M->account : "";
+                ?>
                 <?php
                     if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
                     {

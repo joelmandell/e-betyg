@@ -4,7 +4,7 @@
     <meta charset="utf-8" /> 
     <link rel="stylesheet" type="text/css" href="/e-betyg/resources/css/main.css" />
     <title>
-        E-Betyg
+        E-Betyg - Ladda upp dokument.
     </title>
 </head>
 <body>
@@ -28,9 +28,12 @@
                 echo $auth->IsAuth() ? $_M->account : "";
                 ?>
                 <?php
-                    if($user->InvokedPriviligies)
+                    if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
                     {
                         echo $_M->edit;
+                        
+                    } else if($user->InvokedPriviligies) {
+                        
                     }
 
                     if($auth->IsAuth())
@@ -48,9 +51,16 @@
             <?php
                 if($user->InvokedPriviligies)
                 {
-                    echo $_M->edit_view;
+                    echo $_M->upload_view;
                 }
             ?>
+            <?php echo $_M->file_input; ?>
+            <?php echo $_M->file_choice; ?>
+            <?php echo $_M->progress; ?>
+            <?php echo $_M->usermessage; ?>
+            <?php echo $_M->groupPublic; ?>
+            <?php echo $_M->send; ?>
+
         </div>
         
         <div id="text_right_content">          
@@ -61,15 +71,17 @@
             } else {
                 if($user->InvokedPriviligies)
                 {
-                    echo $_M->edit_options;
-                    echo $_M->create_group;
-                    echo $_M->delete_group;
-                    echo $_M->edit_activate_users;
-                    echo $_M->add_to_group;
+                    echo $_M->upload_options;
                 }
             }
-            ?>           
+            ?>
+            <div id="form_msg">
+            <?php
+               echo $auth->IsAuth() ? $_M->msg : "";            
+            ?>
+            </div>
         </div>
+       
     </div>   
     <div id="foot">
         <div id="foot_content">
