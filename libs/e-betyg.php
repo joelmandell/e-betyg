@@ -215,6 +215,21 @@ class Auth
         return isset($_SESSION["login"])=="true" ? true : false;
     }
     
+    function ActivateUser($id)
+    {
+        
+    }
+    
+    function InactiveUsers()
+    {
+        $users = new ArrayObject();
+        foreach($this->db->query("SELECT * FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0;") as $i)
+        {
+            $users[$i["id"]]=$i["email"];                             
+        }
+        return $users;
+    }
+    
     function Register()
     {
         $email=$_POST["user"];
@@ -235,7 +250,7 @@ class Auth
         }
 
         if(filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return [false, "Ogiltig email."];
+            return [false, "Ogiltig e-mail adress."];
         }    
         
         if(strlen($pass) < 8)
