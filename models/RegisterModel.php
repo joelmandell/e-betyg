@@ -9,7 +9,10 @@ class RegisterModel extends Model {
 
         $this->addJsLibrary("jquery-2.0.3.min.js");
         $this->addJsLibrary("group.js");
-        
+        $this->register="<li>".$this->createLink("Account/Register/", "Registrera")."</li>";
+        $this->upload="<li>".$this->createLink("Account/Upload/","Ladda upp dokument")."</li>";
+        $this->account="<li>".$this->createLink("Account/","Mitt konto")."</li>";
+
         $this->h1="<h1>Registrera dig</h1>";
         $this->p="<p>Det går snabbt att registrera dig, men en administratör "
                 . "måste godkänna ditt konto - varav du senare får ett e-mail "

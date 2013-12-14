@@ -29,7 +29,10 @@ class IndexModel extends Model {
             <li>HTML och CSS</li>
         </ul>
         ";
-        
+        $this->upload="<li>".$this->createLink("Account/Upload/","Ladda upp dokument")."</li>";
+        $this->account="<li>".$this->createLink("Account/","Mitt konto")."</li>";
+     
+        $this->register="<li>".$this->createLink("Account/Register/", "Registrera")."</li>";
         $this->edit="<li>".$this->createLink("Account/Edit/","Redigera")."</li>";
         
         $this->logout="<li>".$this->createLink("Account/SignOut/", "Logga ut")."</li>";
@@ -38,8 +41,8 @@ class IndexModel extends Model {
             <h2>Logga in:</h2>
 
             <form method=\"post\" action=\"Account/SignIn/\" >
-                <input placeholder=\"E-post:\" autocomplete=\"off\" autocapitalize=\"\" autocorrect=\"off\" spellcheck=\"false\" type=\"text\" name=\"user\" />
-                <input placeholder=\"Lösenord:\" autocomplete=\"off\" autocapitalize=\"\" autocorrect=\"off\" spellcheck=\"false\" type=\"password\" name=\"pass\" />
+                <input placeholder=\"E-post:\" autocomplete=\"off\" autocapitalize=\"\" autocorrect=\"off\" spellcheck=\"false\" type=\"text\" name=\"user\" /><br />
+                <input placeholder=\"Lösenord:\" autocomplete=\"off\" autocapitalize=\"\" autocorrect=\"off\" spellcheck=\"false\" type=\"password\" name=\"pass\" /><br />
                 <input type=\"submit\" name=\"submit\" value=\"Logga in\" />
             </form>";
     }
