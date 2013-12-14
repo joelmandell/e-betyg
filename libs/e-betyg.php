@@ -19,12 +19,18 @@ class Group
             exit;
         }   
         
-        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
         {
             $id="";
 
             if($name!="ADMIN")
             {
+                //Get groups that current user belongs to.
+                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ? AND invokedPriviligies=1) AND name=?", [$this->user->UserId,$name]) as $i)
+                {
+                    $group[$i["id"]]=$i["groupName"];
+                } 
+                     
                 $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
                 $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
 
@@ -41,18 +47,15 @@ class Group
                 }
                 
             } else {
-                echo "false";
+                echo "false here";
             }
         }
     }
     
     public function Create($name)
-    {
-        if(filter_var($name,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
-            echo "false";
-            exit;
-        }   
-        
+    {    
+        //TODO: UPDATE USER SO HE BELONGS TO THE CREATED GROUP.
+
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
         {
             $this->db->query("INSERT INTO `group` (groupName) VALUES(?);",[$name]);
@@ -61,8 +64,11 @@ class Group
             foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
             {
                 $id=$i["id"];
+                $this->db->query("INSERT INTO userprop (userId, groupId, approved, invokePriviligies) VALUES(?,?,?,?);",[$this->user->UserId,$id,"1","1"]);
             }
             echo $id;
+        } else {
+            echo "";
         }
     }
     
@@ -72,13 +78,26 @@ class Group
         $group=NULL;
         if($this->auth->IsAuth())
         {
-            foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
+            if($this->user->GroupName=="ADMIN")
             {
-                $group[$i["id"]]=$i["groupName"];
+                foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
+                {
+                    $group[$i["id"]]=$i["groupName"];
+                }
+            } else {
+                
+                if($this->user->InvokedPriviligies)
+                {
+                    foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?)", [$this->user->UserId]) as $i)
+                    {
+                        $group[$i["id"]]=$i["groupName"];
+                    }   
+                }
+                
             }
             return $group;
         } else {
-            return false;
+            exit;
         }
     }
     
@@ -104,7 +123,7 @@ class Group
         if($this->auth->IsAuth())
         {
             $GroupID=$this->user->GroupId;
-            foreach($this->db->query("SELECT * FROM `group` WHERE id=?",[$GroupID]) as $i)
+            foreach($this->db->query("SELECT * FROM `group` WHERE id=? LIMIT 1",[$GroupID]) as $i)
             {
                 $this->user->GroupName=$i["groupName"];
             }
@@ -120,6 +139,65 @@ class Group
     }
 }
  
+
+class Upload {
+
+    private $content, $mime, $db, $doc;
+    
+    function __construct(&$db, &$auth, &$group, &$doc) {
+        $this->db=$db;
+        $this->doc=$doc;
+    }
+        
+    function updateDoc(&$doc)
+    {
+        $this->doc=$doc;
+    }
+    
+    function store($file)
+    {
+        $doc=$this->doc;
+        $blob=file_get_contents($file);
+        $time=time();
+        $this->db->query("INSERT INTO `doc` (file,userId,timestamp, groupId) VALUES(?,?,?,?);"
+                . "INSERT INTO `docproperty` (docId, timestamp) SELECT id, timestamp FROM doc WHERE timestamp=? AND userId=?;"
+                . "UPDATE `doc` SET propId = (SELECT id FROM `docproperty` WHERE timestamp = ?) WHERE timestamp=? AND userId=?;"
+                . "UPDATE `docproperty` SET mime=?,fileName=?,dateUploaded=?,usercomment=?, groupPublic=? WHERE timestamp = ? AND docId=(select id FROM doc WHERE userId=? AND timestamp=?);",
+                [$blob,$doc->userId,$time, $doc->groupId,$time,$doc->userId, $time, $time, $doc->userId,$doc->mime, $doc->fileName, $doc->dateUploaded, $doc->usercomment,$doc->groupPublic,$time, $doc->userId, $time]);
+
+        if($this->db->error==null)
+        {
+            echo "true";
+        } else {
+            echo "false";
+        }
+    }
+    
+}
+
+class DocProperty
+{
+    public $docId, $corrected, $grade, $comment, $fileName,
+            $mime, $dateUploaded, $dateCorrected, $groupPublic, $usercomment;
+    
+    function __construct($db) 
+    {
+
+    }  
+    
+}
+
+class Doc extends DocProperty
+{
+    public $userId, $groupId, $propId;
+    
+    function __construct($db)
+    {
+        parent::__construct($db);
+    }  
+    
+}
+
 class Auth
 {
     public $db, $group, $user;
@@ -169,8 +247,8 @@ class Auth
         $pass_hash=$this->hasher->HashPassword($pass.$salt);
         $this->db->query("INSERT INTO `user` (email,password, salt) VALUES(?,?,?);",[$email,$pass_hash,$salt]); 
        
-        //MySQL will return error if there is a user already, and that errno is 1062.
-        if($this->db->error==1062)
+        //MySQL will return error if there is a user already, and that errno is 23000 (DUPLICATE ENTRY).
+        if($this->db->error==23000)
         {
             return [false, "En användare med den emailadressen är redan registrerad."];    
         }
@@ -231,7 +309,7 @@ class Auth
                 //Find User properties and add the to our user object
                 //that later will be stored in a session, so we can use it
                 //across the user logged in session.
-                foreach($this->db->query("SELECT * FROM userprop WHERE userId=?",[$UserId]) as $i)
+                foreach($this->db->query("SELECT * FROM userprop WHERE userId=? LIMIT 1",[$UserId]) as $i)
                 {
                     $this->user->Approved=$i["approved"];
                     $this->user->GroupId=$i["groupId"];
@@ -260,19 +338,6 @@ class Auth
             }
         }
     }
-}
- 
-class Teacher extends User 
-{
-    function __construct() {
-
-    }
-  
-    //Ge $value antingen värdet TRUE om konto ska aktiveras eller FALSE om det ska avaktiveras, andra argumentet är kontot som berörs.
-    function Activation(bool $value, $accountId)
-    {
-  
-    } 
 }
  
 class UserProperties {

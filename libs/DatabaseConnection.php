@@ -47,7 +47,7 @@ class DatabaseConnection {
                     }
                     if(is_int($param))
                     {
-                        $stmt->bindValue($counter, $param, PDO::PARAM_INT);
+                        $stmt->bindValue($counter, $param, PDO::PARAM_STR);
                     }
                     if(is_bool($param))
                     {
@@ -61,15 +61,12 @@ class DatabaseConnection {
             }
             
             if (!$stmt->execute()) {
-		if ($db->errno === 1062 /* ER_DUP_ENTRY */)
-                {
-                    $this->error = $db->errno;
-                } else {
-			echo $db->error;
-                }       
+
+                $this->error = $stmt->errorCode();
+                return false;
             } else {
                 $this->error=null;
             }
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
