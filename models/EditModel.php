@@ -12,7 +12,8 @@ class EditModel extends Model {
         {
             isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
             $user=$this->user;
-            $this->user="Du är ".$user->Email;
+            $this->userstatus="Du är ".$user->Email;
+            if($this->user->InvokedPriviligies) $this->userstatus.=" och är <u>grupp-admin</u>.";
         }
            
         $this->addJsLibrary("jquery-2.0.3.min.js");
