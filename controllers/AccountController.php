@@ -19,6 +19,41 @@ class AccountController extends Controller {
         $this->view->render("account/index");          
     }
     
+    function Docs($what="")
+    {
+        if($_POST)
+        { 
+            if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
+            {
+                $uploadedDoc=new UploadedDoc($this->db, $this->auth);
+
+                if($what=="PendingCorrection")
+                {
+                    if(!is_numeric($_POST["groupId"])) exit;
+                    echo $uploadedDoc->PendingCorrection($_POST["groupId"]);
+                }
+
+                if($what=="Review")
+                {
+                    if(!is_numeric($_POST["docId"])) exit;
+                    $_SESSION["doc"]=$uploadedDoc->StoreAsDocObject($_POST["docId"]);
+                    $this->view->setModel("ReviewDocModel");
+                    $this->view->render("ajax/review"); 
+                }
+
+                if($what=="Download")
+                {
+                    //Recieve the fileblob from $uploadedDoc
+                    //Then set the header with mimetype and exec it!!
+                   // $uploadedDoc->
+                }
+            }
+        } else {
+            $this->view->setModel("DocsModel");
+            $this->view->render("account/docs"); 
+        }
+    }
+    
     function Delete($what=NULL)
     {
         $group=$this->group;
@@ -45,6 +80,54 @@ class AccountController extends Controller {
         }
     }
     
+    function Activate($what=NULL)
+    {
+        if($this->auth->IsAuth())
+        {
+            
+            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            {
+                if($what=="User")
+                {
+                    if(isset($_POST["userId"]))
+                    {
+                        if(!is_numeric($_POST["groupId"])) exit;
+                        if(!is_numeric($_POST["userId"])) exit;
+                        
+                        echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"]);                    
+
+                    }
+                }
+            } else if($this->user->InvokedPriviligies) {
+                
+            }
+            
+        }
+    }
+    
+    function Preferred($what=NULL)
+    {
+        if($this->auth->IsAuth())
+        {
+            
+            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            {
+                if($what=="Group")
+                {
+                    if(isset($_POST["userId"]))
+                    {
+                        if(!is_numeric($_POST["userId"])) exit;
+                        echo $this->auth->PreferredGroup($_POST["userId"]);                    
+                        
+                    }
+                }
+            } else if($this->user->InvokedPriviligies) {
+                
+            }
+            
+        }
+    }
+    
     function Create($what=NULL)
     {
         $group=$this->group;
@@ -67,6 +150,8 @@ class AccountController extends Controller {
                 } else {
  
                 }
+            } else {
+                echo "false";
             }
         }
     }
@@ -90,6 +175,7 @@ class AccountController extends Controller {
                         {
                             foreach($group->GetUsers($_POST["id"]) as $gUser)
                             {
+                                if($this->user->Email==$gUser) continue;
                                 $users.=$gUser."&nbsp;<a href=\"#remove\" id=\"remove_user\">Radera</a>&nbsp;&nbsp;"
                                         . "<a href=\"#inactivate\" id=\"inactivate_user\">Inaktivera</a><br />";
                             }
