@@ -42,13 +42,13 @@ function Delete(name)
         
         $.post(work_uri,{groupName:name},function( data ) {
 
-            if(data.contains("true"))
+            if(data.indexOf("true")!=-1)
             {
                 $("#edit_groups option:selected").remove();
                 $("#edit_view").html("");
 
             } else {
-                if(name.contains("ADMIN"))
+                if(name.indexOf("ADMIN")!=-1)
                 {
                     alert("Du kan inte ta bort "+name+" gruppen");
                 } else {
@@ -69,13 +69,20 @@ function Create(name)
     {
         $.post(work_uri,{groupName:name},function( data ) {
             id=data;
+            
+            //if recieved data is not null then continue
             if(!isNaN(data))
             {
-                $.each({id:name }, function(key, value) {  
-                    $('#edit_groups')
-                         .append($('<option>', { value : data })
-                         .text(value)); 
-               });
+                if(data!="false")
+                {
+                    $.each({id:name }, function(key, value) {  
+                        $('#edit_groups')
+                             .append($('<option>', { value : data })
+                             .text(value)); 
+                    });
+                } else {
+                    alert("Du har inga rättigheter för detta!");
+                }
             } else {
                 alert("Du har inga rättigheter för detta!");
             }

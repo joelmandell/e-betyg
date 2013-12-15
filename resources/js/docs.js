@@ -7,7 +7,7 @@
     var strPrevLocation = "";
     var strPrevHash = "";
 
-    // This is how often we will be checkint for
+    // This is how often we will be checking for
     // changes on the location.
     var intIntervalTime = 100;
 
@@ -21,20 +21,19 @@
     // This will be the method that we use to check
     // changes in the window location.
     var fnCheckLocation = function(){
-    // Check to see if the location has changed.
+        // Check to see if the location has changed.
         if (strLocation != window.location.href)
         {
+            // Store the new and previous locations.
+            strPrevLocation = strLocation;
+            strPrevHash = strHash;
+            strLocation = window.location.href;
+            strHash = window.location.hash;
 
-        // Store the new and previous locations.
-        strPrevLocation = strLocation;
-        strPrevHash = strHash;
-        strLocation = window.location.href;
-        strHash = window.location.hash;
-
-        // The location has changed. Trigger a
-        // change event on the location object,
-        // passing in the current and previous
-        // location values.
+            // The location has changed. Trigger a
+            // change event on the location object,
+            // passing in the current and previous
+            // location values.
             $( window.location ).trigger(
                 "change",
                 {
@@ -44,7 +43,6 @@
                 previousHash: fnCleanHash( strPrevHash )
                 }
             );
-
         }
     }
 
@@ -53,6 +51,8 @@
     }
 )( jQuery );
 
+//When user press F5 or do refresh of page
+//we need to 
 $(document).ready(function() {
     hashBrowsing();
 });
@@ -60,12 +60,12 @@ $(document).ready(function() {
 //Function to do the routing when navigating by hash-tags.
 function hashBrowsing()
 {
-    if(location.hash.contains("#edit_pending_options"))
+    if(location.hash.indexOf("#edit_pending_options")!=-1)
     {
         PendingCorrections(location.hash);
     }
     
-    if(location.hash.contains("#review"))
+    if(location.hash.indexOf("#review")!=-1)
     {
         Review(location.hash.replace("#review",""));
     }  
@@ -79,13 +79,10 @@ $(window).on('hashchange', function() {
 $( window.location ).bind(
     "change",function( objEvent, objData ){
         
-        if(!document.location.href.contains("#"))
+        if(document.location.href.indexOf("#")==-1)
         {
             $("#doc_view").html("");
-        } else {
-            hashBrowsing();
         }
-        
     }
 );
 

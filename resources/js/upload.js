@@ -49,7 +49,7 @@ $('#send').on('click', function() {
             if (this.status == 200) {
                 var resp = this.response;
                 $("#prog").hide();
-                if(resp.contains("true"))
+                if(resp.indexOf("true")!=-1)
                 {
                     $("#usercomment").val("");
                     $("#selfile").val("");
