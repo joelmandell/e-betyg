@@ -11,7 +11,7 @@
     <div id="page">
         
         <div id="header">
-            <img src="/e-betyg/resources/img/header.png" />
+            <img src="/e-betyg/resources/img/header.jpg" />
         </div>
         
         <div id="nav">
@@ -43,6 +43,11 @@
                 ?>
                 
             </ul>
+            <div id="login_status">
+                <?php
+                    echo $auth->IsAuth() ? $_M->user : "";
+                ?>
+            </div>
         </div>
         
         <div id="text_left_content">
@@ -73,7 +78,6 @@
     </div>   
     <div id="foot">
         <div id="foot_content">
-        <a href="http://github.com/joelmandell"><img id="social" src="/e-betyg/resources/img/Octocat.png" /></a><a href="http://plus.google.com/+joelmandell"><img id="social" src="/e-betyg/resources/img/gplus-64.png" /></a><a href="http://twitter.com/dikatlon"><img id="social" src="/e-betyg/resources/img/Twitter_logo_white.png" /></a>
         <p>Copyright Joel Mandell 2013-2014</p>
         </div>
     </div>
