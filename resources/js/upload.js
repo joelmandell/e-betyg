@@ -34,7 +34,6 @@ $('#send').on('click', function() {
         var progressBar = document.querySelector('progress');
         $("#prog").show();
 
-
         var xhr = new XMLHttpRequest();
         xhr.open('POST', base_uri, true);
         
@@ -68,16 +67,6 @@ $('#send').on('click', function() {
         alert("Du har inte valt vilken grupp du skall ladda upp dokumentet till.");
     }
 });
-
-function fileLoaded(f)
-{
-  
-  
-    /*$.post(base_uri,{file:fileString},function( data ) {
-        $("#upload_view").html("<img id=\"i\" src=\"\" />");
-        $("#i").attr("src","data:"+type+";base64,"+data);
-    });*/
-}
 
 $('#select_group').on('change', function() {
     group= $('option:selected', this).attr('value');  
