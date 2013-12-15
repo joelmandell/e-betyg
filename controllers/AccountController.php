@@ -98,7 +98,10 @@ class AccountController extends Controller {
                     }
                 }
             } else if($this->user->InvokedPriviligies) {
-                
+                        if(!is_numeric($_POST["groupId"])) exit;
+                        if(!is_numeric($_POST["userId"])) exit;
+                        
+                        echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"]);   
             }
             
         }

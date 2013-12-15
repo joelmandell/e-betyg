@@ -153,10 +153,10 @@ class Group
     public function GetUsers($groupId)
     {
         $users=NULL;
-        if($this->auth->IsAuth())
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
         {
             foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT userId
-            FROM userprop WHERE groupId =?);", [$groupId]) as $i)
+            FROM userprop WHERE groupId =? AND approved=1);", [$groupId]) as $i)
             {
                 $users[$i["id"]]=$i["email"];
             }

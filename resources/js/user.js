@@ -25,7 +25,6 @@ $("#confirm_user_activation").on(browserEvent, function () {
     if(really==null || really==true)
     {
         $.post(work_uri,{userId:id,groupId:group},function( data ) {
-
             if(!isNaN(data))
             {
                 $("#edit_activation option:selected").remove();
