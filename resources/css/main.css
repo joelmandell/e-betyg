@@ -5,9 +5,44 @@ html, body {
 }
 body {
     max-width:65em;
-    min-width:32em;
+    min-width:42em;
     margin:0 auto;
     background-color:#99ccff;
+}
+
+#login_status
+{
+    float:right;
+    position:relative;
+    font-weight: bold;
+    margin-top:14px;
+    margin-right: 5px;
+    font-size:14px;
+}
+
+#doc_view [class^='review'] {
+ cursor: pointer;
+ margin-left:25px;
+}
+
+.help {
+    float:right;
+    margin-top:0px;
+    margin-right:0px;
+    width:20px;
+    height:20px;
+    display:inline;
+    position: relative;
+}
+
+.icon {
+    float:left;
+    margin-top:-20px;
+    margin-right:0px;
+    width:20px;
+    height:20px;
+    display:inline;
+    position: relative;
 }
 
 body h1 {
@@ -45,7 +80,7 @@ body p {
     background-color:#0099cc;
     margin-bottom:-50px;
     width:65em;
-    min-width:32em;
+    min-width:42em;
     float:left;
 
     border-top:1px solid #003366;
