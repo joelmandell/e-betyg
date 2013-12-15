@@ -7,8 +7,14 @@ class EditModel extends Model {
     function __construct(&$db, &$auth, &$group) {
         parent::__construct($db, $auth, $group);
         
-        isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
-
+        
+        if($auth->IsAuth()) 
+        {
+            isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
+            $user=$this->user;
+            $this->user="Du är ".$user->Email;
+        }
+           
         $this->addJsLibrary("jquery-2.0.3.min.js");
         $this->addJsLibrary("user.js");
         $this->addJsLibrary("group.js");
@@ -18,6 +24,7 @@ class EditModel extends Model {
         $this->edit="<li>".$this->createLink("Account/Edit/","Redigera")."</li>";
         $this->upload="<li>".$this->createLink("Account/Upload/","Ladda upp dokument")."</li>";
         $this->account="<li>".$this->createLink("Account/","Mitt konto")."</li>";
+        $this->doc="<li>".$this->createLink("Account/Docs/","Dokument")."</li>";
 
         $this->h1="<h1>Redigeringsvy</h1>";
         $this->p="<p>Välj i menyn på sidan vad som skall redigeras.</p>";
@@ -34,7 +41,7 @@ class EditModel extends Model {
         }
         $this->edit_options.="</select>";      
         $this->create_group="<br /><br /><input type=\"submit\" id=\"create_group\" value=\"Skapa ny grupp\" />";
-        $this->delete_group="<br /><input type=\"submit\" id=\"delete_group\" value=\"Radera grupp\" /></fieldset>";
+        $this->delete_group="<br /><br /><input type=\"submit\" id=\"delete_group\" value=\"Radera grupp\" /></fieldset>";
         //FINISHED WITH THE EDITING GROUPS SECTION
 
         //START BUILDING THE SELECT OPTIONS FOR ACTIVATING USERS
@@ -47,7 +54,8 @@ class EditModel extends Model {
         }
         $this->edit_activate_users.="</select>";
         
-        $this->add_to_group="<div id=\"activate_to_group\" style=\"display:none;\">\n\r<select id=\"add_to_group\">\n\r<option value=\"0\">Aktivera i grupp:</option>\n\r";
+        $this->add_to_group="<div id=\"activate_to_group\" style=\"display:none;\"><img class=\"help\" id=\"help_add_user_to_group\" src=\"/e-betyg/resources/img/icons/help.png\"></img><select id=\"add_to_group\">\n\r<option value=\"0\">Aktivera i grupp:</option>\n\r";
+        
         foreach($groups as $id=> $g)
         {
             $this->add_to_group.="<option value=\"".$id."\">".$g."</option>\n\r";
@@ -57,6 +65,27 @@ class EditModel extends Model {
         $this->add_to_group.=$this->invokedPriv;
         $this->add_to_group.="<input type=\"submit\" id=\"confirm_user_activation\" value=\"Verkställ\"/></div></fieldset>";
         //FINISHED WITH THE "ACTIVATE USER" SECTION.     
+        
+        //START BUILDING THE SELECT OPTIONS FOR Adding users to group
+        $this->edit_add_user_to_group="<fieldset>\n\r<legend>Lägg till aktiverad användare till grupp:</legend>\n\r<select id=\"edit_add_user_to_group\">\n\r";
+        $this->edit_add_user_to_group.="<option value=\"0\">Välj användare:</option>\n\r";
+        
+        foreach($this->auth->ActiveUsers() as $id=> $user)
+        {
+            $this->edit_add_user_to_group.="<option value=\"".$id."\">".$user."</option>\n\r";
+        }
+        $this->edit_add_user_to_group.="</select>";
+        
+        $this->edit_add_user_selected_group="<br /><select id=\"edit_add_user_selected_group\">";
+        $this->edit_add_user_selected_group.="<option value=\"0\">Välj grupp</option>";
+        foreach($groups as $id=> $g)
+        {
+            $this->edit_add_user_selected_group.="<option value=\"".$id."\">".$g."</option>\n\r";
+        }
+        $this->edit_add_user_selected_group.="</select>";
+        
+        $this->edit_add_user_to_group.=$this->edit_add_user_selected_group;
+        //FINISHED WITH THE "ACTIVATE USER" SECTION.  */   
     
     }
 

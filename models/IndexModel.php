@@ -4,7 +4,15 @@ class IndexModel extends Model {
 
     function __construct(&$db, &$auth, &$group) {
         parent::__construct($db, $auth, $group);
+            
                 
+        if($auth->IsAuth()) 
+        {
+            isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
+            $user=$this->user;
+            $this->user="Du är ".$user->Email;
+        }
+           
         $this->h1="<h1>Välkommen!</h1>";
         $this->p="<p>E-Betyg är en tjänst för <strong>lärare</strong> och <strong>elever</strong>.</p>
         <p>Här kan elever med sitt konto skicka upp uppdrag för
@@ -34,7 +42,8 @@ class IndexModel extends Model {
      
         $this->register="<li>".$this->createLink("Account/Register/", "Registrera")."</li>";
         $this->edit="<li>".$this->createLink("Account/Edit/","Redigera")."</li>";
-        
+        $this->doc="<li>".$this->createLink("Account/Docs/","Dokument")."</li>";
+
         $this->logout="<li>".$this->createLink("Account/SignOut/", "Logga ut")."</li>";
 
         $this->login_form="            
