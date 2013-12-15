@@ -21,9 +21,6 @@
                 echo $auth->IsAuth() ? $_M->upload : "";
                 ?>
                 <?php
-                echo $auth->IsAuth() ? $_M->account : "";
-                ?> 
-                <?php
                 echo $auth->IsAuth() ? $_M->doc : "";
                 ?>
                 <?php
@@ -41,7 +38,7 @@
             </ul>
             <div id="login_status">
                 <?php
-                    echo $auth->IsAuth() ? $_M->user : "";
+                    echo $auth->IsAuth() ? $_M->userstatus : "";
                 ?>
             </div>
         </div>

@@ -25,9 +25,6 @@
                 echo $auth->IsAuth() ? $_M->upload : "";
                 ?>
                 <?php
-                echo $auth->IsAuth() ? $_M->account : "";
-                ?> 
-                <?php
                 echo $auth->IsAuth() ? $_M->doc : "";
                 ?>
                 <?php

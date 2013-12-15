@@ -21,14 +21,13 @@
                 echo $auth->IsAuth() ? $_M->upload : "";
                 ?>
                 <?php
-                echo $auth->IsAuth() ? $_M->account : "";
-                ?>
-                <?php
                 echo $auth->IsAuth() ? $_M->doc : "";
                 ?>
                 <?php
-                    if($user->InvokedPriviligies && $user->GroupName=="ADMIN")
+                    if($auth->IsAuth() && $user->InvokedPriviligies && $user->BelongsToGroupByName("ADMIN"))
                     {
+                        echo $_M->edit;
+                    } else if($auth->IsAuth() && $user->InvokedPriviligies) {
                         echo $_M->edit;
                     }
 
@@ -41,7 +40,7 @@
             </ul>
             <div id="login_status">
                 <?php
-                    echo $auth->IsAuth() ? $_M->user : "";
+                    echo $auth->IsAuth() ? $_M->userstatus : "";
                 ?>
             </div>
         </div>
