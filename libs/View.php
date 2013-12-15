@@ -26,7 +26,7 @@ class View {
             $class=$this->model;
             
             //Make sure that View class variable $_M
-            //get's insantiated as Model Class Object.
+            //get's instantiated as Model Class Object.
             $this->_M=new $class($this->db, $this->auth, $this->group);
         }
     }
