@@ -51,10 +51,10 @@ function PreferredGroup(name)
     var base_uri=document.location.href.replace("http://"+document.domain,'');
     var base_uri=base_uri.replace("#","");
     var work_uri=base_uri.replace("/Edit/","/Preferred/Group/");
+
     if(name!=0)
     {
         $.post(work_uri,{userId:name},function( data ) {
- 
             if(!isNaN(name))
             {
                 if(data!=0)

@@ -85,7 +85,7 @@ class AccountController extends Controller {
         if($this->auth->IsAuth())
         {
             
-            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            if($this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
             {
                 if($what=="User")
                 {
@@ -95,7 +95,6 @@ class AccountController extends Controller {
                         if(!is_numeric($_POST["userId"])) exit;
                         
                         echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"]);                    
-
                     }
                 }
             } else if($this->user->InvokedPriviligies) {
@@ -109,20 +108,25 @@ class AccountController extends Controller {
     {
         if($this->auth->IsAuth())
         {
-            
-            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            if($this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
             {
                 if($what=="Group")
                 {
                     if(isset($_POST["userId"]))
                     {
                         if(!is_numeric($_POST["userId"])) exit;
-                        echo $this->auth->PreferredGroup($_POST["userId"]);                    
-                        
+                        echo $this->auth->PreferredGroup($_POST["userId"]);                        
                     }
                 }
             } else if($this->user->InvokedPriviligies) {
-                
+               if($what=="Group")
+                {
+                    if(isset($_POST["userId"]))
+                    {
+                        if(!is_numeric($_POST["userId"])) exit;
+                        echo $this->auth->PreferredGroup($_POST["userId"]);                        
+                    }
+                } 
             }
             
         }
@@ -136,7 +140,7 @@ class AccountController extends Controller {
             //If we have possibility to do things that requires certain privs
             //and if we belong to the admin group we should be allowed to do
             //EVERYTHING!
-            if($this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+            if($this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
             {
                 if($what=="Group")
                 {

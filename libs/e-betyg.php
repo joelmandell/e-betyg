@@ -19,7 +19,7 @@ class Group
             exit;
         }   
         
-        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             $id="";
 
@@ -86,13 +86,13 @@ class Group
     {    
         //TODO: UPDATE USER SO HE BELONGS TO THE CREATED GROUP.
 
-        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             $this->db->query("INSERT INTO `group` (groupName) VALUES(?);",[$name]);
             
             $id="";
             
-            if($this->user->GroupName!="ADMIN")
+            if(!$this->user->BelongsToGroupByName("ADMIN"))
             {    
                 foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
                 {
@@ -126,7 +126,7 @@ class Group
         $group=NULL;
         if($this->auth->IsAuth())
         {
-            if($this->user->GroupName=="ADMIN" && $this->user->InvokedPriviligies)
+            if($this->user->BelongsToGroupByName("ADMIN") && $this->user->InvokedPriviligies)
             {
                 foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
                 {
@@ -170,12 +170,16 @@ class Group
     {
         if($this->auth->IsAuth())
         {
-            $GroupID=$this->user->GroupId;
-            foreach($this->db->query("SELECT * FROM `group` WHERE id=? LIMIT 1",[$GroupID]) as $i)
+            $GroupIDS=$this->user->GroupIds;
+            
+            foreach($GroupIDS as $GroupID)
             {
-                $this->user->GroupName=$i["groupName"];
+                foreach($this->db->query("SELECT * FROM `group` WHERE id=?",[$GroupID]) as $i)
+                {
+                    $this->user->GroupNames[]=$i["groupName"];
+                }
             }
-            return $this->user->GroupName;
+            return $this->user->GroupNames;
         } else {
             return false;
         }
@@ -326,14 +330,14 @@ class Auth
     
     function PreferredGroup($userId)
     {
-        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             foreach($this->db->query("SELECT groupId FROM userprop WHERE userId=? AND userprop.approved=0;",[$userId]) as $i)
             {
                 return $i["groupId"];                         
             }
             return 0;
-        } else if($this->IsAuth() && $this->user->InvokedPriviligies() && $this->user->GroupName!="ADMIN")
+        } else if($this->IsAuth() && $this->user->InvokedPriviligies && !$this->user->BelongsToGroupByName("ADMIN"))
         {
             foreach($this->db->query("SELECT groupId FROM userprop WHERE userId=? AND userprop.approved=0;",[$userId]) as $i)
             {
@@ -349,17 +353,20 @@ class Auth
     function ActiveUsers()
     {
         $users = new ArrayObject();
-        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1;") as $i)
             {
                 $users[$i["id"]]=$i["email"];                             
             }
-        } else if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName!="ADMIN")
+        } else if($this->IsAuth() && $this->user->InvokedPriviligies && !$this->user->BelongsToGroupByName("ADMIN"))
         {
-            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1 AND userprop.groupId=?;",[$this->user->GroupId]) as $i)
+            foreach($this->user->GroupIds as $GroupId)
             {
-                $users[$i["id"]]=$i["email"];                             
+                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1 AND userprop.groupId=?;",[$GroupId]) as $i)
+                {
+                    $users[$i["id"]]=$i["email"];                             
+                }
             }
         } else {
             exit;
@@ -369,7 +376,7 @@ class Auth
     
     function ActivateUser($id,$group=0)
     {
-        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             $this->db->query("UPDATE userprop SET approved=1, groupId=? WHERE approved=0 AND userId=?",[$group,$id]);
         } else if($this->IsAuth() && $this->user->InvokedPriviligies) {
@@ -387,16 +394,20 @@ class Auth
     function InactiveUsers()
     {
         $users = new ArrayObject();
-        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->GroupName=="ADMIN")
+        if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0;") as $i)
             {
                 $users[$i["id"]]=$i["email"];                             
             }
         } else if($this->IsAuth() && $this->user->InvokedPriviligies) {
-            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0 AND groupId=?;",[$this->user->GroupId]) as $i)
+            
+            foreach($this->user->GroupIds as $GroupId)
             {
-                $users[$i["id"]]=$i["email"];                             
+                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0 AND groupId=?;",[$GroupId]) as $i)
+                {
+                    $users[$i["id"]]=$i["email"];                             
+                }
             }
         }
         return $users;
@@ -507,10 +518,10 @@ class Auth
                 //Find User properties and add the to our user object
                 //that later will be stored in a session, so we can use it
                 //across the user logged in session.
-                foreach($this->db->query("SELECT * FROM userprop WHERE userId=? LIMIT 1",[$UserId]) as $i)
+                foreach($this->db->query("SELECT * FROM userprop WHERE userId=?",[$UserId]) as $i)
                 {
                     $this->user->Approved=$i["approved"];
-                    $this->user->GroupId=$i["groupId"];
+                    $this->user->GroupIds[]=$i["groupId"];
                     $this->user->InvokedPriviligies=$i["invokePriviligies"];
                     $this->user->UserId=$i["userId"];
                 }                
@@ -523,7 +534,7 @@ class Auth
                     //Store the priviligies:
                     $this->group->GetPriviligies();
                     return [true, "Lösenordet är rätt!"];
-                } else if($this->user->GroupId=="0" || $this->user->GroupId==0) {
+                } else if(count($this->user->GroupIds)<1) {
                     return [false, "Ingen grupp tilldelad - kontakta admin!"];
                 } else {
                     return [false, "Konto ej aktiverat!"];
@@ -541,11 +552,12 @@ class Auth
 }
  
 class UserProperties {
-    public $UserId, $GroupId, $UserPropertiesId, $InvokedPriviligies,
-            $Approved, $GroupName;
+    public $UserId, $GroupIds, $UserPropertiesId, $InvokedPriviligies,
+            $Approved, $GroupNames;
     
     function __construct() {
-        
+        $this->GroupIds=Array();
+        $this->GroupNames=Array();
     }
 }
 
@@ -556,6 +568,20 @@ class User extends UserProperties
     function __construct() {
         parent::__construct();
         
+    }
+    
+    function BelongsToGroupByName($str)
+    {
+        foreach($this->GroupNames as $GroupName)
+        {
+            //If we find for example ADMIN in here then jump out 
+            if($GroupName==$str)
+            {
+                return true;
+            } else {
+                continue;
+            }
+        }
     }
 } 
 
