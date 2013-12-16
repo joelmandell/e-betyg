@@ -1,3 +1,6 @@
+var myBlob=null;
+var base_url="/e-betyg/";
+
 //JQUERY PLUGIN FOR LISTENING TO LOCATION CHANGE.
 (
     function( $ ){
@@ -54,7 +57,8 @@
 //When user press F5 or do refresh of page
 //we need to 
 $(document).ready(function() {
-    hashBrowsing();
+    hashBrowsing();    
+
 });
 
 //Function to do the routing when navigating by hash-tags.
@@ -65,16 +69,49 @@ function hashBrowsing()
         PendingCorrections(location.hash);
     }
     
+    if(location.hash.indexOf("#download")!=-1)
+    {
+        tempArray=location.hash.split("|");
+        fileName=tempArray[1];
+        saveAs(myblob, fileName);
+        window.URL.revokeObjectURL(myblob);
+        history.back(-1);
+    }
+    
     if(location.hash.indexOf("#review")!=-1)
     {
+        var base_uri=document.location.href.replace("http://"+document.domain,"");
+        var work_uri=base_uri.replace(/\w*#\w*/,"Download");
+
+        //Prepare the file in a separate "Thread" or Worker.
+        var worker = new Worker(base_url+"resources/js/DownloadWorker.js");
+        
+        //We send message to the worker that we want to get blob
+        //with id and that we get this id from work_uri.
+        worker.postMessage({id:location.hash.replace("#review",""),uri:work_uri});
+        
+        //Here we listen to the worker and recieve message when it is finished
+        //processing its data.
+        worker.onmessage = function (event) {
+            data=event.data;
+            myblob=b64toBlob(data[2]);
+            var obj_url = window.URL.createObjectURL(myblob,{oneTimeOnly: true, type:"application/octet-stream"});
+            
+            //Create link and send the filename and the hash-navigation url.
+            $("html a[id='download_blob']").attr("href","#download|"+data[1]);
+            //$("html a[id='download_blob']").attr("download",data[1]);
+            $("html a[id='download_blob']").show();
+        };
+        
+        //Download(location.hash.replace("#review",""));
         Review(location.hash.replace("#review",""));
     }  
+    
 }
 
 $(window).on('hashchange', function() {
     hashBrowsing();
 });
-
 
 $( window.location ).bind(
     "change",function( objEvent, objData ){
@@ -85,6 +122,48 @@ $( window.location ).bind(
         }
     }
 );
+
+function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
+
+function DownloadCompat(val)
+{
+    
+}
+
+
+
+function publish(data) {
+  if (!window.BlobBuilder && window.WebKitBlobBuilder) {
+    window.BlobBuilder = window.WebKitBlobBuilder;
+  }
+  var builder = new BlobBuilder();
+  builder.append(data);
+  var blob = builder.getBlob();
+  var url = window.webkitURL.createObjectURL(blob);
+  document.location.href=url;
+}
 
 function Review(val)
 {

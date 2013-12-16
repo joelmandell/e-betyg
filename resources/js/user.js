@@ -31,6 +31,15 @@ $("#confirm_user_activation").on(browserEvent, function () {
                 $("#edit_activation option[value="+id+"]").prop('selected', true);
                 $("#add_to_group option[value='0']").prop("selected",true);
                 alert("Användare aktiverad och tillagd i gruppen!");
+        
+                //When user is added and activated, we select that group from the select list 
+                //to show user that the user truly is added!
+                $("#edit_groups option[value="+group+"]").prop('selected', true);
+                
+                //Now when it is selected, we emulate a user change in the list
+                //so the items will show up!
+                $("#edit_groups").trigger("change");
+
             } else {
                 alert("Gick ej att aktivera användaren av någon anledning.")
             }
