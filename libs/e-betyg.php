@@ -1,7 +1,7 @@
 <?php
+//This is a library that we use in order to create hashed passwords!!
 require 'libs/PasswordHash.php';
 
-//Group-klassen innehåller funktioner för att ge grupptillhörigheter åt inloggad användare.
 class Group
 {    
     private $auth, $db, $user;
@@ -12,33 +12,38 @@ class Group
         $this->user=&$user;
     }
   
+    //Delete group
     public function Delete($name)
     {
+        //First check so there is no dangerous input from user.
         if(filter_var($name,FILTER_SANITIZE_SPECIAL_CHARS) === false) {
             echo "false";
             exit;
         }   
         
+        //Check if logged in and if user have priviligies.
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
             $id="";
 
             if($name!="ADMIN")
-            {
-                //Get groups that current user belongs to.
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ? AND invokedPriviligies=1) AND name=?", [$this->user->UserId,$name]) as $i)
-                {
-                    $group[$i["id"]]=$i["groupName"];
-                } 
-                     
+            {  
+                //Delete all connected users to that group so they will not be left dead in the table.
                 $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
                 $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
-
+                
+                //Delete files that was in that group
+                $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM `doc` WHERE groupId =(SELECT id FROM `groupName` WHERE name=?));",[$name]);
+                $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName =?);",[$name]);
+                
+                //This is just a check to see so it really was deleted.
                 foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
                 {
+                    //If we get this far - it means something went wrong in the delete process.
                     $id=$i["id"];
                 }
                 
+                //If we did not find the group everything got removed correctly and send true.
                 if($id=="")
                 {
                     echo "true";
@@ -55,18 +60,21 @@ class Group
 
             if($name!="ADMIN")
             {
-                //Get groups that current user belongs to.
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ? AND invokedPriviligies=1) AND name=?", [$this->user->UserId,$name]) as $i)
+                //In order to delete the group the user that is logged in
+                //needs to belong to that group.
+                if($this->user->BelongsToGroupByName($name))
                 {
-                    $group[$i["id"]]=$i["groupName"];
-                } 
-                     
-                $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
-                $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
-
-                foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
-                {
-                    $id=$i["id"];
+                    $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
+                    $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
+                    
+                    //Delete Files that belonged to that group.
+                    $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM `doc` WHERE groupId =(SELECT id FROM `groupName` WHERE name=?));",[$name]);
+                    $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName =?);",[$name]);
+                    
+                    foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
+                    {
+                        $id=$i["id"];
+                    }
                 }
                 
                 if($id=="")
@@ -128,17 +136,17 @@ class Group
         {
             if($this->user->BelongsToGroupByName("ADMIN") && $this->user->InvokedPriviligies)
             {
-                foreach($this->db->query("SELECT * FROM `group` WHERE 1") as $i)
+                foreach($this->db->query("SELECT * FROM `group` WHERE 1 ORDER BY groupName ASC") as $i)
                 {
                     $group[$i["id"]]=$i["groupName"];
                 }
             } else if($this->user->InvokedPriviligies) {
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?)", [$this->user->UserId]) as $i)
+                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
                 {
                     $group[$i["id"]]=$i["groupName"];
                 }   
             } else {
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?)", [$this->user->UserId]) as $i)
+                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
                 {
                     $group[$i["id"]]=$i["groupName"];
                 }   
@@ -156,7 +164,7 @@ class Group
         if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
         {
             foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT userId
-            FROM userprop WHERE groupId =? AND approved=1);", [$groupId]) as $i)
+            FROM userprop WHERE groupId =? AND approved=1) ORDER BY email ASC;", [$groupId]) as $i)
             {
                 $users[$i["id"]]=$i["email"];
             }
@@ -241,25 +249,64 @@ class Upload {
 
 class UploadedDoc
 {
-    var $db, $auth, $user;
+    var $db, $auth, $user, $doc;
     function __construct(&$db,&$auth) {
         $this->db=$db;
         $this->auth=$auth;
+        $this->doc = new Doc();
+
         if($auth->IsAuth()) isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
     }
-        
+    
+    function FetchAll($groupId)
+    {
+        if($this->user->BelongsToGroupById($groupId))
+        {
+            $data=null;
+            foreach($this->db->query("SELECT fileName, email, propId FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docproperty.corrected=0 AND groupId=? AND a.userId=u.id;",[$groupId]) as $i){
+                $data[$i["propId"]]=$i["email"]."|".$i["fileName"];
+            }    
+            return json_encode($data);
+        }
+    }
+    
     function PendingCorrection($groupId)
     {
-        $data=null;
-        foreach($this->db->query("SELECT fileName, email, propId FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docproperty.corrected=0 AND groupId=? AND a.userId=u.id;",[$groupId]) as $i){
-            $data[$i["propId"]]=$i["email"]."|".$i["fileName"];
-        }    
-        return json_encode($data);
+        if($this->user->BelongsToGroupById($groupId) || $this->user->BelongsToGroupByName("ADMIN"))
+        {
+            $data=null;
+            foreach($this->db->query("SELECT fileName, email, propId FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docproperty.corrected=0 AND groupId=? AND a.userId=u.id;",[$groupId]) as $i){
+                $data[$i["propId"]]=$i["email"]."|".$i["fileName"];
+            }    
+            return json_encode($data);
+        }
+    }
+
+    function GetBlobAndMime($id)
+    {
+        if($this->doc->docId=="") echo "";
+        
+        if($this->auth->IsAuth())
+        {
+            //Need to do this to check if user actually has right to get this blob.
+            foreach($this->user->GroupNames as $GroupName)
+            {
+                foreach($this->db->query("SELECT file, mime, fileName, groupName FROM doc as d, docproperty as dp,`group` as g WHERE d.id=? AND dp.docId=? AND g.groupName=?;",[$id, $id, $GroupName]) as $i)
+                {
+                    if($i["groupName"]==$GroupName)
+                    {
+                        return [$i["mime"],$i["fileName"], base64_encode($i["file"])];
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }
     }
     
     function StoreAsDocObject($docId)
     {
-        $doc = new Doc();
+        $doc = $this->doc;
         
         if(!is_numeric($docId)) exit;
         
@@ -355,16 +402,20 @@ class Auth
         $users = new ArrayObject();
         if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
-            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1;") as $i)
+            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1 ORDER BY email ASC;") as $i)
             {
+                //Dont add yourself to the list - go to next item.
+                if($i["email"]==$this->user->Email) continue;
                 $users[$i["id"]]=$i["email"];                             
             }
         } else if($this->IsAuth() && $this->user->InvokedPriviligies && !$this->user->BelongsToGroupByName("ADMIN"))
         {
             foreach($this->user->GroupIds as $GroupId)
             {
-                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1 AND userprop.groupId=?;",[$GroupId]) as $i)
+                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=1 AND userprop.groupId=? ORDER BY email ASC;",[$GroupId]) as $i)
                 {
+                    //Dont add yourself to the list - go to next item.
+                    if($i["email"]==$this->user->Email) continue;
                     $users[$i["id"]]=$i["email"];                             
                 }
             }
@@ -396,7 +447,7 @@ class Auth
         $users = new ArrayObject();
         if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
-            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0;") as $i)
+            foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0 ORDER BY email ASC;") as $i)
             {
                 $users[$i["id"]]=$i["email"];                             
             }
@@ -404,7 +455,7 @@ class Auth
             
             foreach($this->user->GroupIds as $GroupId)
             {
-                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0 AND groupId=?;",[$GroupId]) as $i)
+                foreach($this->db->query("SELECT email, user.id FROM user INNER JOIN userprop ON user.id=userprop.userId WHERE userprop.approved=0 AND groupId=? ORDER BY email ASC;",[$GroupId]) as $i)
                 {
                     $users[$i["id"]]=$i["email"];                             
                 }
@@ -576,6 +627,20 @@ class User extends UserProperties
         {
             //If we find for example ADMIN in here then jump out 
             if($GroupName==$str)
+            {
+                return true;
+            } else {
+                continue;
+            }
+        }
+    }
+    
+    function BelongsToGroupById($id)
+    {
+        foreach($this->GroupIds as $GroupId)
+        {
+            //If we find for example ADMIN in here then jump out 
+            if($GroupId==$id)
             {
                 return true;
             } else {

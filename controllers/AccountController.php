@@ -23,17 +23,23 @@ class AccountController extends Controller {
     {
         if($_POST)
         { 
-            if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
+            if($this->auth->IsAuth())
             {
                 $uploadedDoc=new UploadedDoc($this->db, $this->auth);
 
-                if($what=="PendingCorrection")
+                if($what=="PendingCorrection" && $this->user->InvokedPriviligies)
                 {
                     if(!is_numeric($_POST["groupId"])) exit;
                     echo $uploadedDoc->PendingCorrection($_POST["groupId"]);
                 }
+                
+                if($what=="FetchAll")
+                {
+                    if(!is_numeric($_POST["groupId"])) exit;
+                    echo $uploadedDoc->FetchAll($_POST["groupId"]);
+                }
 
-                if($what=="Review")
+                if($what=="Review" && $this->user->InvokedPriviligies)
                 {
                     if(!is_numeric($_POST["docId"])) exit;
                     $_SESSION["doc"]=$uploadedDoc->StoreAsDocObject($_POST["docId"]);
@@ -43,9 +49,17 @@ class AccountController extends Controller {
 
                 if($what=="Download")
                 {
-                    //Recieve the fileblob from $uploadedDoc
+                    if(!is_numeric($_POST["docId"])) exit;
+                    
+                    //Load the uploaded document and store it as an Doc class Object.
+                    $uploadedDoc->StoreAsDocObject($_POST["docId"]);
+                    
+                    //Now we can use that to recieve the fileblob from $uploadedDoc
+                    $show_file=$uploadedDoc->GetBlobAndMime($_POST["docId"]);
+
+                    header("Content-Type: ".$show_file[0]."");
                     //Then set the header with mimetype and exec it!!
-                   // $uploadedDoc->
+                    echo json_encode($show_file);                    
                 }
             }
         } else {
