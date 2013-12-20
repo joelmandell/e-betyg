@@ -20,7 +20,12 @@ $('#edit_groups').on('change', function() {
 
 $('#create_group').on(browserEvent, function() {
     var name = prompt("Vad skall gruppen heta?", "");   
-    Create(name);
+    if(name.indexOf(" ") || name!==null) 
+    {
+        Create(name);
+    } else {
+        alert("Du avbröt eller så var namnet \""+name+"\" ogiltigt.");
+    }
 });
 
 

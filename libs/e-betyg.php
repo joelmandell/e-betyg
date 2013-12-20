@@ -11,7 +11,20 @@ class Group
         $this->auth = &$auth;
         $this->user=&$user;
     }
-  
+    
+    function GetEmailFromUserId($id)
+    {
+        if($this->auth->IsAuth())
+        {
+            foreach($this->db->query("SELECT email FROM `user` WHERE id = ?", [$id]) as $u)
+            {
+                $email=$u["email"];
+            }
+            
+            return $email;
+        }
+    }
+    
     //Delete group
     public function Delete($name)
     {
@@ -28,13 +41,13 @@ class Group
 
             if($name!="ADMIN")
             {  
+                //Delete files that was in that group
+                $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM doc WHERE groupId=(SELECT id FROM `group` WHERE groupName=?) AND doc.id=docproperty.docId )",[$name]);
+                $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName=?);",[$name]);
+
                 //Delete all connected users to that group so they will not be left dead in the table.
                 $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
                 $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
-                
-                //Delete files that was in that group
-                $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM `doc` WHERE groupId =(SELECT id FROM `groupName` WHERE name=?));",[$name]);
-                $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName =?);",[$name]);
                 
                 //This is just a check to see so it really was deleted.
                 foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
@@ -64,12 +77,12 @@ class Group
                 //needs to belong to that group.
                 if($this->user->BelongsToGroupByName($name))
                 {
+                    //Delete Files that belonged to that group.
+                    $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM doc WHERE groupId=(SELECT id FROM `group` WHERE groupName=?) AND doc.id=docproperty.docId )",[$name]);
+                    $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName=?);",[$name]);
+                
                     $this->db->query("DELETE FROM `userProp` WHERE groupId IN (SELECT id FROM `group` WHERE groupName =?);", [$name]);
                     $this->db->query("DELETE FROM `group` WHERE groupName =?;",[$name]);
-                    
-                    //Delete Files that belonged to that group.
-                    $this->db->query("DELETE FROM `docproperty` WHERE docId = (SELECT id FROM `doc` WHERE groupId =(SELECT id FROM `groupName` WHERE name=?));",[$name]);
-                    $this->db->query("DELETE FROM `doc` WHERE groupId = (SELECT id FROM `group` WHERE groupName =?);",[$name]);
                     
                     foreach($this->db->query("SELECT * FROM `group` WHERE groupName = ?", [$name]) as $i)
                     {
@@ -141,12 +154,13 @@ class Group
                     $group[$i["id"]]=$i["groupName"];
                 }
             } else if($this->user->InvokedPriviligies) {
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
+                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userprop` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
                 {
                     $group[$i["id"]]=$i["groupName"];
                 }   
             } else {
-                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userProp` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
+                
+                foreach($this->db->query("SELECT * FROM `group` WHERE id IN (SELECT groupId FROM `userprop` WHERE userId = ?) ORDER BY groupName ASC", [$this->user->UserId]) as $i)
                 {
                     $group[$i["id"]]=$i["groupName"];
                 }   
@@ -157,11 +171,11 @@ class Group
         }
     }
     
-        //Lista grupper från databas.
+    //Lista användare från databas.
     public function GetUsers($groupId)
     {
         $users=NULL;
-        if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
+        if($this->auth->IsAuth() && $this->user->InvokedPriviligies && ($this->user->BelongsToGroupById($groupId) || $this->user->BelongsToGroupByName("ADMIN")))
         {
             foreach($this->db->query("SELECT * FROM user WHERE id IN (SELECT userId
             FROM userprop WHERE groupId =? AND approved=1) ORDER BY email ASC;", [$groupId]) as $i)
@@ -257,13 +271,80 @@ class UploadedDoc
 
         if($auth->IsAuth()) isset($_SESSION["user"]) ? $this->user=$_SESSION["user"] : $this->user=new User();
     }
+       
+    function CanChangeDocument($docId)
+    {
+        $data=false;
+        foreach($this->user->GroupIds as $GroupID)
+        {
+            if($this->auth->IsAuth() && $this->user->InvokedPriviligies)
+            {
+                foreach($this->db->query("SELECT groupId FROM doc as a WHERE id=? AND groupId=?;",[$docId, $GroupID]) as $i){
+                    $data=true;
+                } 
+                if($data) break;  
+                
+            } else if ($this->auth->IsAuth() && $this->auth->BelongsToGroupByName("ADMIN")) {
+                $data=true;
+                break;
+                
+            } else {
+                $userId=$this->user->UserId;
+                foreach($this->db->query("SELECT groupId FROM doc as a WHERE id=? AND a.userId=? AND groupId=?;",[$docId, $userId, $GroupID]) as $i){
+                    $data=true;
+                } 
+                if($data) break;
+            }
+        }        
+        return $data;
+    }
+    
+    function BelongsToUser($docId)
+    {
+        $userId=$this->user->UserId;
+
+        $data="";
+        foreach($this->db->query("SELECT userId FROM `docproperty`,doc as a WHERE a.id=? AND a.id=docproperty.docId AND a.userId=?;",[$docId, $userId]) as $i){
+            $data=true;
+        }    
+        
+        return $data ? true : false ;   
+    }
+    
+    function Correct($postData)
+    {
+        if($this->auth->IsAuth() && $this->CanChangeDocument($postData["docId"]) || $this->user->BelongsToGroupByName("ADMIN"))
+        {
+            $this->db->query("UPDATE `docproperty` "
+                    . "SET corrected=?, dateCorrected=?, grade=?, comment=? WHERE docId=?;"
+                    ,["1", date("Y-m-d H:i:s"),$postData["grade"],$postData["comment"],$postData["docId"]]);
+            return "corrected";            
+        } else {
+            return "Otilåtten åtgärd";
+        }
+    }
+    
+    function Fetch($docId)
+    {
+        if($this->BelongsToUser($docId))
+        {
+            $data=null;
+            foreach($this->StoreAsDocObject($docId) as $setting => $value)
+            {
+                $data[$setting]=$value;
+            }
+            return json_encode($data);
+        } else {
+            return "error";
+        }
+    }
     
     function FetchAll($groupId)
     {
         if($this->user->BelongsToGroupById($groupId))
         {
             $data=null;
-            foreach($this->db->query("SELECT fileName, email, propId FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docproperty.corrected=0 AND groupId=? AND a.userId=u.id;",[$groupId]) as $i){
+            foreach($this->db->query("SELECT fileName, email, propId FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND groupId=? AND a.userId=? AND a.userId=u.id;",[$groupId, $this->user->UserId]) as $i){
                 $data[$i["propId"]]=$i["email"]."|".$i["fileName"];
             }    
             return json_encode($data);
@@ -279,6 +360,8 @@ class UploadedDoc
                 $data[$i["propId"]]=$i["email"]."|".$i["fileName"];
             }    
             return json_encode($data);
+        } else {
+            return "FOOOO";
         }
     }
 
@@ -311,7 +394,7 @@ class UploadedDoc
         if(!is_numeric($docId)) exit;
         
         foreach($this->db->query("SELECT docId, corrected, grade, usercomment, comment, fileName, mime, dateUploaded, dateCorrected, groupPublic, userId, groupId, email "
-                . " FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docproperty.corrected=0 AND docId=? AND a.userId=u.id;",[$docId]) as $i){
+                . " FROM `docproperty`,doc as a,`user` as u WHERE docproperty.id=a.propId AND docId=? AND a.userId=u.id;",[$docId]) as $i){
             $doc->comment=$i["comment"];
             $doc->corrected=$i["corrected"];
             $doc->dateCorrected=$i["dateCorrected"];
@@ -339,7 +422,7 @@ class DocProperty
 {
     public $docId, $corrected, $grade, $comment, $fileName,
             $mime, $dateUploaded, $dateCorrected, $groupPublic, $usercomment,
-            $email, $downloadPath;
+            $email;
     
     function __construct() 
     {
@@ -369,10 +452,22 @@ class Auth
         $this->group = new Group($this->db, $this, $this->user);  
         $this->hasher = new PasswordHash(8, FALSE);     
     }
-    
+   
     function IsAuth()
     {
         return isset($_SESSION["login"])=="true" ? true : false;
+    }
+    
+    //DEPRECATED NEED TO CHANGE TO PHPMail
+    function SendMailTo($FromEmail, $ToEmail, $Subject, $Message)
+    {
+        $to = $ToEmail;
+        $subject = $Subject;
+        $mail_body = $Message;
+        $FromEmail="joelmandell@127.0.0.1";
+        $headers  = "From:".$FromEmail."\r\n";
+        $headers .= "Content-type: text\r\n";
+        mail($to, $subject, $mail_body, $headers);
     }
     
     function PreferredGroup($userId)
@@ -422,16 +517,17 @@ class Auth
         } else {
             exit;
         }
+        
         return $users;   
     }
     
-    function ActivateUser($id,$group=0)
+    function ActivateUser($id,$group=0, $invokePriv)
     {
         if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
         {
-            $this->db->query("UPDATE userprop SET approved=1, groupId=? WHERE approved=0 AND userId=?",[$group,$id]);
-        } else if($this->IsAuth() && $this->user->InvokedPriviligies) {
-            $this->db->query("UPDATE userprop SET approved=1, groupId=? WHERE approved=0 AND userId=?",[$group,$id]);
+            $this->db->query("UPDATE userprop SET approved=1, groupId=?, invokePriviligies=? WHERE approved=0 AND userId=?",[$group,$invokePriv, $id]);
+        } else if($this->IsAuth() && $this->user->InvokedPriviligies && $this->user->BelongsToGroupById($group)) {
+            $this->db->query("UPDATE userprop SET approved=1, groupId=?, invokePriviligies=? WHERE approved=0 AND userId=?",[$group,$invokePriv,$id]);
         }
         
         $data="";
@@ -439,6 +535,7 @@ class Auth
         {
             $data=$i["groupId"];                            
         }
+                
         return $data;
     }
     
@@ -515,7 +612,7 @@ class Auth
         
         $this->db->query("INSERT INTO `userprop` (userId, groupId) SELECT id,? FROM user WHERE email = ?;",[$group,$email]); 
 
-        return [true, "Ditt konto har skapats. Meddela en datoransvarig om att aktivera kontont."];    
+        return [true, "Ditt konto har skapats. Meddela lärare eller datoransvarige om att aktivera kontont."];    
     }
     
     function Logout()

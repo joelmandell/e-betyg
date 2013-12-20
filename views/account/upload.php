@@ -54,7 +54,7 @@
             <?php echo $_M->h1; ?>
             <?php echo $_M->p; ?>
             <?php
-                if($user->InvokedPriviligies)
+                if($auth->IsAuth())
                 {
                     echo $_M->upload_view;
                 }

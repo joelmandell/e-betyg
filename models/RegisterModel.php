@@ -30,9 +30,12 @@ class RegisterModel extends Model {
             <option value=\"0\">Välj grupp</option>
         ";
         $groups=$group->GetGroupsSafeMode();
-        foreach($groups as $id => $g)
+        if(count($groups)!=0)
         {
-        $this->selected_group.="<option value=\"".$id."\">".$g."</option>";
+            foreach($groups as $id => $g)
+            {
+            $this->selected_group.="<option value=\"".$id."\">".$g."</option>";
+            }
         }
         $this->selected_group.="</select><br /><br />";
         

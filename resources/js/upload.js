@@ -20,6 +20,32 @@ $('#send').on('click', function() {
         selectedfile=file;
         reader.readAsText(file);
         
+        //Check if mimetype is correct.
+        if(file.type=="application/vnd.oasis.opendocument.text")
+        {
+            //Good! Just continue..
+        } else if (file.type=="application/x-pdf") {
+            //Good....
+        } else if (file.type=="application/pdf") {
+            //Good...    
+        } else if(file.type=="application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            //Good
+        } else if(file.type=="application/msword") {
+            //Good           
+        } else if(file.type=="application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            //Good
+        } else if(file.type=="application/vnd.ms-excel") {
+            //Good
+        } else if(file.type=="application/vnd.ms-powerpoint") {
+            //Good
+        } else if(file.type=="application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            //Good
+        } else {
+            //NOoo way that you gonna upload that file dude!
+            alert("Otillåtet filformat - endast pdf, odt och office format tillåtna.");
+            return;
+        }
+        
         var base_uri=document.location.href.replace("http://"+document.domain,'');
         var base_uri=base_uri.replace("#","");
 
@@ -48,15 +74,21 @@ $('#send').on('click', function() {
             if (this.status == 200) {
                 var resp = this.response;
                 $("#prog").hide();
+
                 if(resp.indexOf("true")!=-1)
                 {
                     $("#usercomment").val("");
                     $("#selfile").val("");
                     $("#file_choice_layer").hide();
                     $('input[name=groupPublic]').attr('checked', false);
-                    $("#send").hide();
+                    $("#send").hide();            
                     alert("Filen har laddats upp!");
-                } else {
+                    
+                } else if(resp.indexOf("ERROR")!=-1) { 
+                    //Eeeh..so you tried bybass the javascript. You will not get 
+                    //possibility to upload other mime anyways, sucker!
+                    alert("Otillåtet filformat - endast pdf, odt och office format tillåtna.");
+                } else {    
                     alert("Misslyckades ladda upp. Försök igen!");
                 }
             };

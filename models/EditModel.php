@@ -62,7 +62,7 @@ class EditModel extends Model {
             $this->add_to_group.="<option value=\"".$id."\">".$g."</option>\n\r";
         }
         $this->add_to_group.="</select>"; 
-        $this->invokedPriv="<label for=\"invokePriv\">Ge redigeringsrättigheter?</label><input type=\"checkbox\" id=\"invokePriv\" name=\"invokePriv\" value=\"public\" /> <br />";
+        $this->invokedPriv="<label for=\"invokePriv\">Ge redigeringsrättigheter?</label><input type=\"checkbox\" id=\"invokePriv\" name=\"invokePriv\"/> <br />";
         $this->add_to_group.=$this->invokedPriv;
         $this->add_to_group.="<input type=\"submit\" id=\"confirm_user_activation\" value=\"Verkställ\"/></div></fieldset>";
         //FINISHED WITH THE "ACTIVATE USER" SECTION.     

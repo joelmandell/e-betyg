@@ -50,11 +50,15 @@
         <div id="text_left_content">
             <?php echo $_M->h1; ?>
             <?php echo $_M->p; ?>
+            <?php echo $_M->fileloader; ?>
             <?php echo $auth->IsAuth() ? $_M->doc_view : ""; ?>
             <?php
                 if($user->InvokedPriviligies)
                 {
                     echo $_M->edit_view;
+                } else if(!$user->InvokedPriviligies && $auth->IsAuth())
+                {
+                    
                 }
             ?>
         </div>
@@ -68,6 +72,9 @@
                 if($user->InvokedPriviligies)
                 {
                     echo $_M->edit_pending_options;
+                } else if(!$user->InvokedPriviligies && $auth->IsAuth())
+                {
+                    echo $_M->downloaded_files_options;
                 }
             }
             ?>           

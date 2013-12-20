@@ -31,7 +31,7 @@ class UploadModel extends Model {
 
         $this->file_input="<a href=\"#\" id=\"filepick\" />Välj fil</a><input style=\"display:none;\" type=\"file\" id=\"selfile\" />";
         $this->file_choice="<div style=\"display:none;\" id=\"file_choice_layer\">Du har valt fil: <strong id=\"file_choice\"></strong></div>";
-        $this->usermessage="<label>Meddelande till ansvarig:</label><textarea name=\"usercomment\" id=\"usercomment\"></textarea><br />";
+        $this->usermessage="<label>Meddelande till lärare:</label><textarea name=\"usercomment\" id=\"usercomment\"></textarea><br />";
         $this->groupPublic="<label for=\"groupPublic\">Synlig för hela gruppen?</label><input type=\"checkbox\" id=\"groupPublic\" name=\"groupPublic\" value=\"public\" /> <br />";
         $this->send="<a style=\"display:none;\" href=\"#\" id=\"send\">Ladda upp fil</a>";
         $this->progress="<br \><progress id=\"prog\" style=\"display:none;\" min=\"0\" max=\"100\" value=\"0\">0% färdigt</progress>";    

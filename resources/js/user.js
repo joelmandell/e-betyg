@@ -12,19 +12,22 @@ $("#confirm_user_activation").on(browserEvent, function () {
     var base_uri=base_uri.replace("#","");
     var work_uri=base_uri.replace("/Edit/","/Activate/User/");
     var really=null; //Will contain possible confirm box value later on.
-    
+
     var id=$("#edit_activation option:selected").val();
     var group=$("#add_to_group option:selected").val();
-    
+
     if(group=="0")
     {
         really=confirm("Om du inte tilldelat någon grupp så kommer användaren vara utan\n\
         grupp och du kommer behöver lägga till användaren skilt. Vill du detta?");
     }
     
+    var invokePrivCheck=$("#invokePriv").prop("checked");
+    invokePrivCheck==true ? invokePrivCheck="1" : invokePrivCheck="0";
+    
     if(really==null || really==true)
     {
-        $.post(work_uri,{userId:id,groupId:group},function( data ) {
+        $.post(work_uri,{userId:id,groupId:group, invokePriv:invokePrivCheck},function( data ) {
             if(!isNaN(data))
             {
                 $("#edit_activation option:selected").remove();
@@ -32,6 +35,7 @@ $("#confirm_user_activation").on(browserEvent, function () {
                 $("#add_to_group option[value='0']").prop("selected",true);
                 alert("Användare aktiverad och tillagd i gruppen!");
         
+                $("#invokePriv").prop("checked",false);
                 //When user is added and activated, we select that group from the select list 
                 //to show user that the user truly is added!
                 $("#edit_groups option[value="+group+"]").prop('selected', true);
@@ -48,10 +52,8 @@ $("#confirm_user_activation").on(browserEvent, function () {
     
 });
 
-$('#help_add_user_to_group').on(browserEvent, function () {
-  
-    alert("Om det är så att du inte väljer en grupp att tilldela användaren så sker endast en aktivering av användaren!");
-    
+$('#help_add_user_to_group').on(browserEvent, function () {  
+    alert("Om det är så att du inte väljer en grupp att tilldela användaren så sker endast en aktivering av användaren!");    
 });
 
 function PreferredGroup(name)

@@ -33,10 +33,29 @@ class AccountController extends Controller {
                     echo $uploadedDoc->PendingCorrection($_POST["groupId"]);
                 }
                 
+                if($what=="Correct" && $this->user->InvokedPriviligies)
+                {
+                    if(!is_numeric($_POST["docId"])) exit;
+                    
+                    $postData=null;
+                    
+                    foreach($_POST as $post => $data)
+                    {
+                        $postData[$post]=$data;
+                    }
+                    echo $uploadedDoc->Correct($postData);
+                }
+                
                 if($what=="FetchAll")
                 {
                     if(!is_numeric($_POST["groupId"])) exit;
                     echo $uploadedDoc->FetchAll($_POST["groupId"]);
+                }
+                
+                if($what=="Fetch")
+                {
+                    if(!is_numeric($_POST["docId"])) exit;
+                    echo $uploadedDoc->Fetch($_POST["docId"]);
                 }
 
                 if($what=="Review" && $this->user->InvokedPriviligies)
@@ -98,26 +117,32 @@ class AccountController extends Controller {
     {
         if($this->auth->IsAuth())
         {
-            
-            if($this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
+            if($what=="User")
             {
-                if($what=="User")
+                //Is the _POST variable set??
+                if(isset($_POST["userId"]))
                 {
-                    if(isset($_POST["userId"]))
+                    //Check if ADMIN
+                    if($this->user->InvokedPriviligies && $this->user->BelongsToGroupByName("ADMIN"))
                     {
-                        if(!is_numeric($_POST["groupId"])) exit;
-                        if(!is_numeric($_POST["userId"])) exit;
-                        
-                        echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"]);                    
+
+                                if(!is_numeric($_POST["groupId"])) exit;
+                                if(!is_numeric($_POST["userId"])) exit;
+                                if(!is_numeric($_POST["invokePriv"])) exit;
+                                
+                                echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"], $_POST["invokePriv"]); 
+                                
+                    //Appears to be user with invoked privs anyways here so he can do changes to the groups he belongs to
+                    //The group check will be done in the e-betyg API!.
+                    } else if($this->user->InvokedPriviligies) {
+                                if(!is_numeric($_POST["groupId"])) exit;
+                                if(!is_numeric($_POST["userId"])) exit;
+                                if(!is_numeric($_POST["invokePriv"])) exit;
+
+                                echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"], $_POST["invokePriv"]);   
                     }
                 }
-            } else if($this->user->InvokedPriviligies) {
-                        if(!is_numeric($_POST["groupId"])) exit;
-                        if(!is_numeric($_POST["userId"])) exit;
-                        
-                        echo $this->auth->ActivateUser($_POST["userId"], $_POST["groupId"]);   
             }
-            
         }
     }
     
@@ -197,9 +222,11 @@ class AccountController extends Controller {
                             foreach($group->GetUsers($_POST["id"]) as $gUser)
                             {
                                 if($this->user->Email==$gUser) continue;
-                                $users.=$gUser."&nbsp;<a href=\"#remove\" id=\"remove_user\">Radera</a>&nbsp;&nbsp;"
-                                        . "<a href=\"#inactivate\" id=\"inactivate_user\">Inaktivera</a><br />";
+                                $users.=$gUser."<br />";
+                                        //"&nbsp;<a href=\"#remove\" id=\"remove_user\">Radera</a>&nbsp;&nbsp;"
+                                        //. "<a href=\"#inactivate\" id=\"inactivate_user\">Inaktivera</a><br />";
                             }
+                            $this->_M->users.=$this->user->Email;
                             $this->_M->users=$users;
 
                         } else {
@@ -234,6 +261,46 @@ class AccountController extends Controller {
                 $this->doc->groupPublic=$_POST["groupPublic"];
                 $this->doc->usercomment=$_POST["usercomment"];
                 $this->upload->updateDoc($this->doc);
+                
+                switch($_POST["mime"])
+                {
+                    case "application/pdf":
+                        echo "doc";
+                    break;
+                
+                    case "application/x-pdf":
+                        echo "doc";    
+                    break;
+                
+                    case "application/msword":
+                        echo "doc";
+                    break;
+                
+                    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                        echo "doc";
+                    break;
+                
+                    case "application/vnd.ms-excel":
+                        echo "doc";
+                    break;
+                
+                    case "application/vnd.ms-powerpoint":
+                        echo "doc";
+                    break;
+                
+                    case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+                        echo "doc";
+                    break;
+                
+                    case "application/vnd.oasis.opendocument.text":
+                        echo "doc";
+                    break;
+                
+                    default:
+                        die("ERROR");
+                    break;                   
+                }
+                
                 $this->upload->store($_FILES["file"]["tmp_name"]);
 
             }
